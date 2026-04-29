@@ -8,6 +8,7 @@ export type Transaction = {
   category: string;
   note: string;
   date: string;
+  type: "income" | "expense";
 };
 
 export type Budget = {
@@ -181,9 +182,10 @@ export function useStore() {
     localStorage.setItem(key, encrypted);
   };
 
-  const addTransaction = async (t: Omit<Transaction, "id" | "date">) => {
+  const addTransaction = async (t: Omit<Transaction, "id" | "date" | "type"> & Partial<Pick<Transaction, "type">) => {
     const newT: Transaction = {
       ...t,
+      type: t.type ?? "expense",
       id: Math.random().toString(36).substring(2, 11),
       date: new Date().toISOString(),
     };
