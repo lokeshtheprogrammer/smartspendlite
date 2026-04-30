@@ -1,8 +1,9 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import { useAuth } from "../lib/auth";
+import { useSession } from "next-auth/react";
 import Link, { useLinkStatus } from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
 import AddExpenseModal from "./AddExpenseModal";
@@ -22,10 +23,17 @@ function LinkPendingDot() {
 
 export default function Header() {
   const { data: session } = useSession();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isActive = (path: string) => pathname === path;
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
 
   // Don't show header on splash or onboarding
   if (pathname === "/" || pathname === "/onboarding") return null;
@@ -89,15 +97,15 @@ export default function Header() {
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 pressable hover:bg-slate-100 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white sm:h-12 sm:w-12 sm:rounded-2xl overflow-hidden bg-slate-100 dark:bg-white/5"
             title="Identity"
           >
-            {session?.user?.image ? (
-              <Image src={session.user.image} alt="Profile" width={48} height={48} className="h-full w-full object-cover" />
+            {user?.photoURL || session?.user?.image ? (
+              <Image src={user?.photoURL || (session?.user?.image as string)} alt="Profile" width={48} height={48} className="h-full w-full object-cover" />
             ) : (
               <span className="material-symbols-outlined text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center overflow-hidden notranslate">account_circle</span>
             )}
           </Link>
           
           <button
-            onClick={() => signOut({ callbackUrl: '/' })}
+            onClick={handleLogout}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 pressable hover:bg-slate-100 hover:text-red-500 dark:hover:bg-white/5 sm:h-12 sm:w-12 sm:rounded-2xl"
             title="Sign Out"
           >

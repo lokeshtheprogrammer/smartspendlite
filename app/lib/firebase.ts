@@ -13,12 +13,21 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Initialize Firebase fail-safe
+let app;
+try {
+  if (getApps().length > 0) {
+    app = getApp();
+  } else if (firebaseConfig.apiKey) {
+    app = initializeApp(firebaseConfig);
+  }
+} catch (error) {
+  console.error("Firebase initialization failed:", error);
+}
 
 // Initialize services
-const db = getFirestore(app);
-const auth = getAuth(app);
+const db = app ? getFirestore(app) : null;
+const auth = app ? getAuth(app) : null;
 const googleProvider = new GoogleAuthProvider();
 
 // Analytics only runs on the client
