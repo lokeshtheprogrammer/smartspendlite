@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
@@ -14,7 +14,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase fail-safe
-let app;
+let app: FirebaseApp | undefined;
 try {
   if (getApps().length > 0) {
     app = getApp();
@@ -35,7 +35,7 @@ export const initAnalytics = async () => {
   if (typeof window !== "undefined") {
     try {
       const supported = await isSupported();
-      if (supported) {
+      if (supported && app) {
         return getAnalytics(app);
       }
     } catch (e) {
