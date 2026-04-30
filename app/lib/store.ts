@@ -182,7 +182,7 @@ export function useStore() {
     localStorage.setItem(key, encrypted);
   };
 
-  const addTransaction = async (t: Omit<Transaction, "id" | "date" | "type"> & Partial<Pick<Transaction, "type">) => {
+  const addTransaction = async (t: Omit<Transaction, "id" | "date" | "type"> & Partial<Pick<Transaction, "type">>) => {
     const newT: Transaction = {
       ...t,
       type: t.type ?? "expense",
