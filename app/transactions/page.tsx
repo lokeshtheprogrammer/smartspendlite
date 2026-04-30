@@ -41,7 +41,7 @@ export default function Transactions() {
   const nextWeek = new Date();
   nextWeek.setDate(nextWeek.getDate() + 5);
 
-  const predictions = [
+  const predictions: PredictionEntry[] = [
     {
       id: "pred-1",
       note: "Netflix Subscription",
