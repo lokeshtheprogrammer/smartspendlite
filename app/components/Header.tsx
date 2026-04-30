@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "../lib/auth";
-import { useSession } from "next-auth/react";
+import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import Link, { useLinkStatus } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -31,8 +31,23 @@ export default function Header() {
   const isActive = (path: string) => pathname === path;
 
   const handleLogout = async () => {
-    await logout();
-    router.push("/");
+    try {
+      // 1. Sign out of Firebase
+      await logout();
+      
+      // 2. Sign out of NextAuth (if session exists)
+      if (session) {
+        await nextAuthSignOut({ redirect: false });
+      }
+      
+      // 3. Force redirect to splash
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed", error);
+      // Fallback redirect
+      window.location.href = "/";
+    }
   };
 
   // Don't show header on splash or onboarding
