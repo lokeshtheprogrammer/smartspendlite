@@ -3,16 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth";
+import { useStore } from "../lib/store";
 import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
   const { signInWithGoogle, user } = useAuth();
+  const { settings } = useStore();
   const [isLoading, setIsLoading] = useState(false);
 
-  // If user is already logged in, redirect to dashboard
+  // If user is already logged in, redirect based on onboarding status
   if (user) {
-    router.push("/dashboard");
+    const target = settings.onboarded ? "/dashboard" : "/onboarding";
+    router.push(target);
     return null;
   }
 
@@ -20,7 +23,10 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithGoogle();
-      router.push("/dashboard");
+      // On success, the 'user' dependency in the redirect check above will trigger,
+      // but let's be explicit here too.
+      const target = settings.onboarded ? "/dashboard" : "/onboarding";
+      router.push(target);
     } catch (error) {
       console.error("Login failed", error);
     } finally {

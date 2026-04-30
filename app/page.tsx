@@ -3,31 +3,35 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "./lib/store";
+import { useAuth } from "./lib/auth";
 import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
   const { settings, isLoaded } = useStore();
+  const { user, loading: authLoading } = useAuth();
   const [redirected, setRedirected] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Only set the timer once when isLoaded becomes true
-    if (isLoaded && !redirected && !timerRef.current) {
-      // Splash: Initialized and ready. Starting redirect.
+    // Wait for both store and auth to be ready
+    if (isLoaded && !authLoading && !redirected && !timerRef.current) {
       
       timerRef.current = setTimeout(() => {
-        const target = settings.onboarded ? "/dashboard" : "/onboarding";
-        // Splash: Executing redirect to target
+        let target = "/login";
+        
+        if (user) {
+          target = settings.onboarded ? "/dashboard" : "/onboarding";
+        }
+        
         setRedirected(true);
         
         try {
           router.push(target);
         } catch {
-          // Redirect failed via router, trying window.location
           window.location.assign(target);
         }
-      }, 50);
+      }, 800); // Give it a bit more time for the splash feel
     }
 
     return () => {
@@ -36,7 +40,7 @@ export default function Home() {
         timerRef.current = null;
       }
     };
-  }, [isLoaded, settings.onboarded, router, redirected]);
+  }, [isLoaded, authLoading, user, settings.onboarded, router, redirected]);
 
   return (
     <div className="bg-[#03071d] text-white font-sans antialiased overflow-hidden min-h-screen relative flex flex-col items-center justify-center">
@@ -94,10 +98,13 @@ export default function Home() {
                 {isLoaded ? "Secure Ledger Ready" : "Initializing Environment..."}
               </div>
               
-              {isLoaded && (
+              {isLoaded && !authLoading && (
                 <button 
                   onClick={() => {
-                    const target = settings.onboarded ? "/dashboard" : "/onboarding";
+                    let target = "/login";
+                    if (user) {
+                      target = settings.onboarded ? "/dashboard" : "/onboarding";
+                    }
                     window.location.assign(target);
                   }}
                   className="bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 rounded-full px-8 py-3 text-xs font-bold tracking-[0.2em] uppercase transition-all hover:scale-105 active:scale-95"

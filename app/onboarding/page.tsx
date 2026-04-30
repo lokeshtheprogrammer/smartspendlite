@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "../lib/store";
+import { useAuth } from "../lib/auth";
 import { useRouter } from "next/navigation";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
-  const { settings, updateSettings } = useStore();
+  const { settings, updateSettings, isLoaded } = useStore();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -15,12 +17,28 @@ export default function Onboarding() {
     currency: settings.currency || "Rs",
   });
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   const nextStep = () => setStep(step + 1);
   
   const finishOnboarding = () => {
     updateSettings({ ...formData, onboarded: true });
     router.push("/dashboard");
   };
+
+  if (!isLoaded || authLoading) {
+    return (
+      <div className="min-h-screen bg-[#03071d] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen text-white font-sans antialiased flex flex-col items-center justify-center p-6 relative overflow-hidden" 

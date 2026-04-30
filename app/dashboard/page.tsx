@@ -1,6 +1,8 @@
 "use client";
 
 import { useStore } from "../lib/store";
+import { useAuth } from "../lib/auth";
+import { useRouter } from "next/navigation";
 import StandardPageShell from "../components/StandardPageShell";
 import { PageSkeleton } from "../components/LoadingSkeleton";
 import { EnhancedCard } from "../components/enhanced/EnhancedCard";
@@ -14,6 +16,8 @@ import { parseTransactionInput } from "../lib/transactionParser";
 
 export default function Dashboard() {
   const { transactions, budgets, settings, isLoaded, addTransaction, updateBudget } = useStore();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [omniInput, setOmniInput] = useState("");
   const [omniState, setOmniState] = useState<"idle" | "parsing" | "success">("idle");
@@ -23,6 +27,12 @@ export default function Dashboard() {
   const [newCatLimit, setNewCatLimit] = useState("");
   const [isPanicModeOpen, setIsPanicModeOpen] = useState(false);
   
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   const handleExport = () => {
     const headers = ["Date", "Category", "Note", "Amount", "Type"];
     const escapeCsv = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
@@ -195,7 +205,7 @@ export default function Dashboard() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
-  if (!isLoaded) return (
+  if (!isLoaded || authLoading) return (
     <StandardPageShell
       title="Loading..."
       description="Preparing your financial dashboard."
@@ -203,6 +213,8 @@ export default function Dashboard() {
       <PageSkeleton />
     </StandardPageShell>
   );
+
+  if (!user) return null; // Prevent flicker while redirecting
 
   return (
     <StandardPageShell
