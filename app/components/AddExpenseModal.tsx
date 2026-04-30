@@ -17,6 +17,7 @@ const CATEGORIES = [
   { id: "housing", label: "Living", icon: "home", color: "bg-green-500/10 text-green-600" },
   { id: "entertainment", label: "Fun", icon: "movie", color: "bg-red-500/10 text-red-600" },
   { id: "other", label: "Mix", icon: "more_horiz", color: "bg-slate-500/10 text-slate-600" },
+  { id: "income", label: "Income", icon: "add_circle", color: "bg-emerald-500/10 text-emerald-600" },
 ];
 
 export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
@@ -35,6 +36,8 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
       if (parsed.amount > 0) setAmount(parsed.amount.toString());
       if (parsed.category !== "income" && CATEGORIES.some(c => c.id === parsed.category)) {
         setSelectedCategory(parsed.category);
+      } else if (parsed.type === "income") {
+        setSelectedCategory("income");
       }
       if (parsed.merchant) {
         setNote(parsed.merchant + (parsed.type === "income" ? " (Income)" : ""));
@@ -63,6 +66,7 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
       amount: parsedAmount,
       category: selectedCategory,
       note: note || "General Entry",
+      type: selectedCategory === "income" ? "income" : "expense",
     });
     setAmount("");
     setNote("");

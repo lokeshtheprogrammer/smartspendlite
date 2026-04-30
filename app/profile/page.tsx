@@ -7,7 +7,7 @@ import Image from "next/image";
 export default function Profile() {
   const { settings, isLoaded, transactions } = useStore();
 
-  const totalSpent = transactions.reduce((acc, t) => acc + t.amount, 0);
+  const totalSpent = transactions.filter(t => t.type !== "income").reduce((acc, t) => acc + t.amount, 0);
   const healthScore = totalSpent > 0 ? 82 : 0;
 
   if (!isLoaded) return <div className="p-12 text-center text-gray-400">Loading identity...</div>;

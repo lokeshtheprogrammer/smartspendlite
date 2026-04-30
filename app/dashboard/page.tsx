@@ -24,13 +24,14 @@ export default function Dashboard() {
   const [isPanicModeOpen, setIsPanicModeOpen] = useState(false);
   
   const handleExport = () => {
-    const headers = ["Date", "Category", "Note", "Amount"];
+    const headers = ["Date", "Category", "Note", "Amount", "Type"];
     const escapeCsv = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
     const rows = transactions.map(t => [
       new Date(t.date).toLocaleDateString(),
       t.category,
       t.note,
-      t.amount
+      t.amount,
+      t.type
     ]);
     const csvContent = headers.join(",") + "\n"
       + rows.map(e => e.map(escapeCsv).join(",")).join("\n");
@@ -67,6 +68,7 @@ export default function Dashboard() {
           amount: parsed.amount,
           category: cat,
           note: parsed.merchant || "Quick Entry",
+          type: parsed.type,
         });
         
         const catBudgetObj = budgets.find(b => b.month === thisMonthStr && b.category === cat);
@@ -121,6 +123,7 @@ export default function Dashboard() {
             amount: parsed.amount,
             category: cat,
             note: parsed.merchant || "Auto-Captured Receipt",
+            type: parsed.type,
           });
           
           setAiFeedback(`Auto-Captured ${cat}: ${settings.currency}${parsed.amount}. Ledger synced.`);

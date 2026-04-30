@@ -42,13 +42,14 @@ export default function Settings() {
   };
 
   const handleExport = () => {
-    const headers = ["Date", "Category", "Note", "Amount"];
+    const headers = ["Date", "Category", "Note", "Amount", "Type"];
     const escapeCsv = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
     const rows = transactions.map(t => [
       new Date(t.date).toLocaleDateString(),
       t.category,
       t.note,
-      t.amount
+      t.amount,
+      t.type
     ]);
     const csvContent = headers.join(",") + "\n"
       + rows.map(e => e.map(escapeCsv).join(",")).join("\n");
