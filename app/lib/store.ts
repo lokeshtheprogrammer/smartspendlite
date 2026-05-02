@@ -163,8 +163,8 @@ export function useStore() {
     if (t.goalId) {
       globalGoals = globalGoals.map(g => {
         if (g.id === t.goalId) {
-          const delta = newT.type === "income" ? newT.amount : -newT.amount;
-          return { ...g, currentAmount: Math.max(0, g.currentAmount + delta) };
+          // Any transaction linked to a goal contributes to its progress (spending or saving)
+          return { ...g, currentAmount: g.currentAmount + newT.amount };
         }
         return g;
       });
@@ -190,8 +190,8 @@ export function useStore() {
     if (t.goalId) {
       globalGoals = globalGoals.map(g => {
         if (g.id === t.goalId) {
-          const delta = t.type === "income" ? -t.amount : t.amount;
-          return { ...g, currentAmount: Math.max(0, g.currentAmount + delta) };
+          // Subtract the transaction amount when deleting
+          return { ...g, currentAmount: Math.max(0, g.currentAmount - t.amount) };
         }
         return g;
       });
