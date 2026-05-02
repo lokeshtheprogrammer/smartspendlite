@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth";
 import { useStore } from "../lib/store";
-import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,7 +44,8 @@ export default function LoginPage() {
           {/* Logo Section */}
           <div className="flex flex-col items-center gap-4">
             <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20 shadow-xl overflow-hidden">
-              <Image src="/logo.png" alt="Logo" width={64} height={64} unoptimized className="object-contain" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Logo" className="w-14 h-14 object-contain" />
             </div>
             <h1 className="text-3xl font-black tracking-tighter">SmartSpend</h1>
             <p className="text-slate-400 text-sm font-medium text-center px-4">

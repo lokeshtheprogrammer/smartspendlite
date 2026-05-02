@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "./lib/store";
 import { useAuth } from "./lib/auth";
-import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
@@ -75,7 +74,8 @@ export default function Home() {
           <div className="relative group">
             <div className="absolute inset-0 blur-3xl bg-[#0057c2] opacity-40 rounded-full scale-150 transition-transform duration-1000 group-hover:scale-[2]"></div>
             <div className="relative w-32 h-32 md:w-48 md:h-48 bg-white/10 backdrop-blur-2xl rounded-[48px] flex items-center justify-center border border-white/20 shadow-2xl transition-all duration-700 hover:rotate-3 overflow-hidden">
-              <Image src="/logo.png?v=2" alt="SmartSpend" width={128} height={128} unoptimized className="h-24 w-24 md:h-32 md:w-32 object-contain drop-shadow-2xl" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="SmartSpend" className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-2xl" />
             </div>
           </div>
 
