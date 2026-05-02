@@ -111,7 +111,10 @@ export default function Home() {
         <div className="flex justify-between items-center px-6 md:px-12 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="SuperSpend Lite" className="w-8 h-8 object-contain" />
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white shadow-sm flex items-center justify-center shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="SuperSpend Lite" className="w-full h-full object-cover" />
+            </div>
             <span className="text-lg font-black tracking-tight">SuperSpend <span className="text-[#0057c2]">Lite</span></span>
           </div>
           <button
@@ -141,9 +144,9 @@ export default function Home() {
         <div className="relative z-10 flex flex-col items-center text-center gap-6 animate-in fade-in zoom-in-95 duration-1000">
           <div className="relative group">
             <div className="absolute inset-0 bg-[#0057c2] blur-3xl opacity-30 rounded-full scale-150 animate-pulse"></div>
-            <div className="relative w-28 h-28 md:w-36 md:h-36 bg-white/10 backdrop-blur-2xl rounded-[32px] flex items-center justify-center border border-white/20 shadow-2xl transition-all duration-700 hover:scale-105 hover:rotate-2 overflow-hidden">
+            <div className="relative w-28 h-28 md:w-36 md:h-36 bg-white rounded-[32px] flex items-center justify-center border border-white/20 shadow-2xl transition-all duration-700 hover:scale-105 hover:rotate-2 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="SuperSpend Lite" className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-2xl" />
+              <img src="/logo.png" alt="SuperSpend Lite" className="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -304,7 +307,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="SuperSpend Lite" className="w-6 h-6 object-contain opacity-60" />
+            <div className="w-6 h-6 rounded overflow-hidden bg-white flex items-center justify-center shrink-0 opacity-60">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="SuperSpend Lite" className="w-full h-full object-cover" />
+            </div>
             <span className="text-white/40 text-sm font-bold">SuperSpend Lite</span>
           </div>
           <p className="text-white/20 text-xs font-medium">Made with ❤️ for India · Free forever · Your data stays with you</p>

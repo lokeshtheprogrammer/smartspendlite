@@ -46,9 +46,9 @@ export default function LoginPage() {
         <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-10 shadow-2xl flex flex-col items-center gap-8">
           {/* Logo Section */}
           <div className="flex flex-col items-center gap-4">
-            <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20 shadow-xl overflow-hidden">
+            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Logo" className="w-14 h-14 object-contain" />
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-3xl font-black tracking-tighter">SmartSpend</h1>
             <p className="text-slate-400 text-sm font-medium text-center px-4">

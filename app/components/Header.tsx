@@ -66,8 +66,8 @@ export default function Header() {
       <nav className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/78 px-4 py-3 backdrop-blur-2xl transition-colors dark:border-white/10 dark:bg-[#0d1424]/82 sm:px-6 md:px-8 sm:py-4">
         <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-3">
           <Link href="/dashboard" className="group flex shrink-0 items-center gap-2 rounded-2xl pr-2 pressable">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-lg transition-transform group-hover:rotate-6 sm:h-10 sm:w-10">
-              <Image src="/logo.png?v=2" alt="SmartSpend Logo" width={40} height={40} unoptimized className="h-full w-full object-cover" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-lg transition-transform group-hover:rotate-6 sm:h-10 sm:w-10 bg-white">
+              <Image src="/logo.png" alt="SuperSpend Lite Logo" width={40} height={40} unoptimized className="h-full w-full object-cover" />
             </div>
             <span className="hidden max-w-[200px] truncate text-lg font-black text-slate-900 dark:text-white sm:inline-block">
               SmartSpend
