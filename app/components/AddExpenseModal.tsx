@@ -197,16 +197,24 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
 
             {/* Goal Link & Extras */}
             <div className="space-y-2">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Link to Goal (Optional)</p>
+              <div className="flex justify-between items-center px-1">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Link to Goal</p>
+                {selectedGoalId && (
+                  <div className="flex items-center gap-1 text-[9px] font-black text-emerald-500 uppercase tracking-widest animate-in fade-in slide-in-from-right-2">
+                    <span className="material-symbols-outlined text-[12px]">verified</span>
+                    Linked
+                  </div>
+                )}
+              </div>
               <div className="flex gap-2">
                 <select 
                   value={selectedGoalId}
                   onChange={e => setSelectedGoalId(e.target.value)}
-                  className="flex-1 bg-slate-50 dark:bg-white/5 py-3 px-4 rounded-xl text-xs font-bold outline-none border border-transparent focus:border-[#0057c2]/30 appearance-none"
+                  className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold outline-none border transition-all appearance-none ${selectedGoalId ? 'bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500'}`}
                 >
                   <option value="">No Goal</option>
                   {goals.map(g => (
-                    <option key={g.id} value={g.id}>{g.name} ({g.type})</option>
+                    <option key={g.id} value={g.id}>{g.name}</option>
                   ))}
                 </select>
                 <input

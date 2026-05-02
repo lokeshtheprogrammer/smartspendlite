@@ -153,11 +153,13 @@ export function useStore() {
     globalTransactions = [newT, ...globalTransactions];
     
     if (t.accountId) {
-      const acc = globalAccounts.find(a => a.id === t.accountId);
-      if (acc) {
-        acc.balance += (newT.type === "income" ? newT.amount : -newT.amount);
-        await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
-      }
+      globalAccounts = globalAccounts.map(acc => {
+        if (acc.id === t.accountId) {
+          return { ...acc, balance: acc.balance + (newT.type === "income" ? newT.amount : -newT.amount) };
+        }
+        return acc;
+      });
+      await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
     }
 
     if (t.goalId) {
