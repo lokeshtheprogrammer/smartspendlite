@@ -194,6 +194,20 @@ export default function Home() {
                     </>
                   )}
                 </button>
+
+                <div className="flex items-center gap-4 my-1">
+                  <div className="h-[1px] bg-white/10 flex-1"></div>
+                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Or</span>
+                  <div className="h-[1px] bg-white/10 flex-1"></div>
+                </div>
+
+                <button
+                  onClick={() => router.push("/login")}
+                  className="w-full bg-white/5 border border-white/10 text-white font-semibold py-4 rounded-2xl transition-all hover:bg-white/10 flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-xl">mail</span>
+                  Continue with Email
+                </button>
                 {error && <p className="text-red-400 text-sm text-center font-medium">{error}</p>}
                 <button
                   onClick={() => setShowLogin(false)}
