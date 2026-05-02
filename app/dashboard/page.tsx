@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useMemo, useEffect } from "react";
 
 export default function Dashboard() {
-  const { transactions, settings, accounts, recurring, isLoaded, addTransaction } = useStore();
+  const { transactions, settings, accounts, recurring, goals, isLoaded, addTransaction, updateRecurring } = useStore();
 
   const now = new Date();
   const thisMonthStr = now.toISOString().substring(0, 7);
@@ -21,28 +21,44 @@ export default function Dashboard() {
     return { income, expense, totalBalance, remaining: income - expense };
   }, [transactions, thisMonthStr, accounts]);
 
-  // Process Recurring Transactions
+  // Process Recurring Transactions (runs once when data loads)
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || recurring.length === 0) return;
     
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = now.toISOString().split('T')[0];
+    const currentWeek = Math.floor(now.getDate() / 7);
+
     recurring.forEach(async (r) => {
-       // Simple check: if not triggered this month (for monthly)
-       const lastTriggeredMonth = r.lastTriggered?.substring(0, 7);
-       if (r.frequency === "monthly" && lastTriggeredMonth !== thisMonthStr) {
-          // Trigger it
-          await addTransaction({
-            amount: r.amount,
-            category: r.category,
-            note: `${r.note} (Recurring)`,
-            type: r.type,
-            date: new Date().toISOString()
-          });
-          // Note: In a real app, you'd update the recurring object's lastTriggered in the store
-          // For now, we'll assume it's handled or we'll add that logic next if needed
-       }
+      let shouldTrigger = false;
+
+      if (r.frequency === "monthly") {
+        // Trigger if lastTriggered is missing or from a different month
+        const lastMonth = r.lastTriggered?.substring(0, 7);
+        shouldTrigger = lastMonth !== thisMonthStr;
+      } else if (r.frequency === "weekly") {
+        // Trigger if lastTriggered is missing or more than 6 days ago
+        if (!r.lastTriggered) {
+          shouldTrigger = true;
+        } else {
+          const lastDate = new Date(r.lastTriggered);
+          const daysSince = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+          shouldTrigger = daysSince >= 7;
+        }
+      }
+
+      if (shouldTrigger) {
+        await addTransaction({
+          amount: r.amount,
+          category: r.category,
+          note: `${r.note} (Auto)`,
+          type: r.type,
+          date: now.toISOString(),
+        });
+        await updateRecurring(r.id, { lastTriggered: todayStr });
+      }
     });
-  }, [isLoaded, recurring, thisMonthStr, addTransaction]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded]);
 
   if (!isLoaded) return <div className="p-12 text-center text-gray-400 font-bold">Waking up SuperSpend...</div>;
 
@@ -165,7 +181,7 @@ export default function Dashboard() {
                   <p className="text-xs text-white/40 italic font-medium px-6">Set up automatic bills like Rent or Netflix in Settings.</p>
                 </div>
               )}
-              <Link href="/budget" className="block w-full py-4 mt-4 bg-white/10 hover:bg-white/20 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest transition-all">Manage Automation</Link>
+              <Link href="/settings" className="block w-full py-4 mt-4 bg-white/10 hover:bg-white/20 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest transition-all">Manage Bills</Link>
             </div>
           </div>
 

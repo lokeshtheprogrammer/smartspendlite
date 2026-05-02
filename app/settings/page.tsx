@@ -188,55 +188,87 @@ export default function Settings() {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Recurring Bills</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Recurring Bills & Subscriptions</h3>
             <div className="interactive-card p-8 rounded-[32px] space-y-8">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input 
-                    placeholder="Bill Name (e.g. Rent)"
-                    value={recNote}
-                    onChange={e => setRecNote(e.target.value)}
-                    className="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl text-sm font-bold outline-none"
-                  />
-                  <div className="flex gap-2">
+               <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input 
+                      placeholder="Bill Name (e.g. Rent, Netflix, WiFi)"
+                      value={recNote}
+                      onChange={e => setRecNote(e.target.value)}
+                      className="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl text-sm font-bold outline-none border border-transparent focus:border-secondary/30"
+                    />
                     <input 
                       type="number"
                       placeholder="Amount"
                       value={recAmount}
                       onChange={e => setRecAmount(e.target.value)}
-                      className="flex-1 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl text-sm font-bold outline-none"
+                      className="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl text-sm font-bold outline-none border border-transparent focus:border-secondary/30"
                     />
-                    <button 
-                      onClick={() => {
-                        const amt = parseFloat(recAmount);
-                        if (recNote && amt > 0) {
-                          addRecurring({ note: recNote, amount: amt, category: recCategory, frequency: recFreq, type: "expense" });
-                          setRecNote(""); setRecAmount("");
-                        }
-                      }}
-                      className="px-6 bg-secondary text-white rounded-2xl font-black text-xs uppercase"
-                    >Add</button>
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <select 
+                      value={recFreq}
+                      onChange={e => setRecFreq(e.target.value as "monthly" | "weekly")}
+                      className="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl text-sm font-bold outline-none appearance-none"
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                    <select 
+                      value={recCategory}
+                      onChange={e => setRecCategory(e.target.value)}
+                      className="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl text-sm font-bold outline-none appearance-none"
+                    >
+                      <option value="utilities">Bills & Utilities</option>
+                      <option value="housing">Rent / Housing</option>
+                      <option value="entertainment">Entertainment</option>
+                      <option value="food">Food</option>
+                      <option value="transport">Transport</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const amt = parseFloat(recAmount);
+                      if (recNote && amt > 0) {
+                        addRecurring({ note: recNote, amount: amt, category: recCategory, frequency: recFreq, type: "expense" });
+                        setRecNote(""); setRecAmount("");
+                      }
+                    }}
+                    className="w-full py-4 bg-secondary text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-secondary/20 pressable"
+                  >Add Recurring Bill</button>
                </div>
 
                <div className="space-y-3">
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Active Bills ({recurring.length})</p>
                  {recurring.map(r => (
-                   <div key={r.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-transparent hover:border-secondary/20 transition-all">
+                   <div key={r.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-transparent hover:border-secondary/20 transition-all group">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center">
                           <span className="material-symbols-outlined text-xl">auto_renew</span>
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-900 dark:text-white">{r.note}</p>
-                          <p className="text-[10px] font-black text-slate-400 uppercase">{r.frequency} • {settings.currency}{r.amount}</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase">
+                            {r.frequency} • {settings.currency}{r.amount} • {r.category}
+                          </p>
+                          {r.lastTriggered && (
+                            <p className="text-[9px] text-emerald-500 font-bold mt-1">Last triggered: {new Date(r.lastTriggered).toLocaleDateString()}</p>
+                          )}
                         </div>
                       </div>
-                      <button onClick={() => deleteRecurring(r.id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                      <button onClick={() => deleteRecurring(r.id)} className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
                         <span className="material-symbols-outlined text-lg">delete</span>
                       </button>
                    </div>
                  ))}
                  {recurring.length === 0 && (
-                   <p className="text-center py-6 text-xs text-slate-400 italic">No recurring bills set up yet.</p>
+                   <div className="text-center py-8 bg-slate-50/50 dark:bg-white/[0.02] rounded-3xl border border-dashed border-slate-200 dark:border-white/10">
+                     <span className="material-symbols-outlined text-slate-300 text-3xl mb-2">auto_renew</span>
+                     <p className="text-xs text-slate-400 italic font-medium">Add your first recurring bill above.</p>
+                     <p className="text-[10px] text-slate-300 mt-1">e.g. Rent, WiFi, Netflix, Gym</p>
+                   </div>
                  )}
                </div>
             </div>

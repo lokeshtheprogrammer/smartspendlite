@@ -252,6 +252,12 @@ export function useStore() {
     notify();
   };
 
+  const updateRecurring = async (id: string, updates: Partial<RecurringTransaction>) => {
+    globalRecurring = globalRecurring.map(r => r.id === id ? { ...r, ...updates } : r);
+    await saveToStorage(STORAGE_KEYS.RECURRING, globalRecurring);
+    notify();
+  };
+
   return {
     transactions: globalTransactions,
     budgets: globalBudgets,
@@ -269,5 +275,6 @@ export function useStore() {
     deleteGoal,
     addRecurring,
     deleteRecurring,
+    updateRecurring,
   };
 }
