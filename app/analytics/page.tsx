@@ -2,8 +2,7 @@
 
 import { useStore } from "../lib/store";
 import StandardPageShell from "../components/StandardPageShell";
-import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 const CATEGORY_COLORS: Record<string, string> = {
   food: "bg-orange-500",
@@ -21,212 +20,229 @@ export default function Analytics() {
 
   const now = new Date();
   const thisMonthStr = now.toISOString().substring(0, 7);
-  const monthlyTransactions = transactions.filter(t => t.date.startsWith(thisMonthStr));
+  
+  const lastMonth = new Date();
+  lastMonth.setMonth(lastMonth.getMonth() - 1);
+  const lastMonthStr = lastMonth.toISOString().substring(0, 7);
+
+  const monthlyTransactions = transactions.filter(t => t.date.startsWith(thisMonthStr) && t.type !== "income");
+  const lastMonthTransactions = transactions.filter(t => t.date.startsWith(lastMonthStr) && t.type !== "income");
+
   const totalMonthlySpend = monthlyTransactions.reduce((acc, t) => acc + t.amount, 0);
+  const totalLastMonthSpend = lastMonthTransactions.reduce((acc, t) => acc + t.amount, 0);
 
   // Aggregated Category Data
-  const categories = Array.from(new Set(monthlyTransactions.map(t => t.category)));
-  const categorySummary = categories.map(cat => {
-    const amount = monthlyTransactions.filter(t => t.category === cat).reduce((acc, t) => acc + t.amount, 0);
-    const percentage = totalMonthlySpend > 0 ? (amount / totalMonthlySpend) * 100 : 0;
-    return {
-      name: cat.charAt(0).toUpperCase() + cat.slice(1),
-      amount,
-      percentage: Math.round(percentage),
-      color: CATEGORY_COLORS[cat] || "bg-slate-400",
-    };
-  }).sort((a, b) => b.amount - a.amount);
-
-  const recentDays = [...Array(periodDays)].map((_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split("T")[0];
-    const amount = transactions
-      .filter(t => t.date.startsWith(dateStr))
-      .reduce((acc, t) => acc + t.amount, 0);
-    return {
-      day: d.toLocaleDateString('en-US', { weekday: 'short' }),
-      amount
-    };
-  }).reverse();
-
-  const maxAmount = Math.max(...recentDays.map(d => d.amount), 1);
-  const categorySegments = categorySummary.reduce(
-    (segments, cat) => {
-      const radius = 40;
-      const circumference = 2 * Math.PI * radius;
-      const dashoffset = (segments.accumulated / 100) * circumference;
-
+  const categorySummary = useMemo(() => {
+    const cats = Array.from(new Set(monthlyTransactions.map(t => t.category)));
+    return cats.map(cat => {
+      const amount = monthlyTransactions.filter(t => t.category === cat).reduce((acc, t) => acc + t.amount, 0);
+      const percentage = totalMonthlySpend > 0 ? (amount / totalMonthlySpend) * 100 : 0;
       return {
-        accumulated: segments.accumulated + cat.percentage,
-        items: [
-          ...segments.items,
-          {
-            ...cat,
-            radius,
-            circumference,
-            dashoffset,
-            strokeDasharray: `${(cat.percentage / 100) * circumference} ${circumference}`,
-          },
-        ],
+        name: cat.charAt(0).toUpperCase() + cat.slice(1),
+        amount,
+        percentage: Math.round(percentage),
+        color: CATEGORY_COLORS[cat] || "bg-slate-400",
       };
-    },
-    {
-      accumulated: 0,
-      items: [] as Array<
-        (typeof categorySummary)[number] & {
-          radius: number;
-          circumference: number;
-          dashoffset: number;
-          strokeDasharray: string;
-        }
-      >,
-    }
-  ).items;
+    }).sort((a, b) => b.amount - a.amount);
+  }, [monthlyTransactions, totalMonthlySpend]);
 
-  if (!isLoaded) return <div className="p-12 text-center text-gray-400">Loading analytics...</div>;
+  // Spending Velocity Data (Cumulative)
+  const spendingVelocity = useMemo(() => {
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const currentDay = now.getDate();
+    const data = [];
+    let cumulative = 0;
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dayTransactions = monthlyTransactions.filter(t => new Date(t.date).getDate() === i);
+      const dayTotal = dayTransactions.reduce((acc, t) => acc + t.amount, 0);
+      cumulative += dayTotal;
+      
+      if (i <= currentDay) {
+        data.push({ day: i, amount: cumulative });
+      }
+    }
+    return data;
+  }, [monthlyTransactions, now]);
+
+  const maxVelocity = Math.max(...spendingVelocity.map(d => d.amount), 1);
+
+  if (!isLoaded) return <div className="p-12 text-center text-gray-400 font-bold">Initializing Telemetry...</div>;
 
   return (
     <StandardPageShell
-      title="Wealth Telemetry"
-      description="Advanced data intelligence and categorical breakdown of your asset allocation."
+      title="Financial Insights"
+      description="Deep-dive analytics and spending patterns for the current fiscal period."
       showBack={true}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {/* Left Column: Weekly Trends */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="interactive-card p-8 rounded-2xl">
-            <div className="flex justify-between items-center mb-10">
-              <h3 className="text-xl font-bold text-slate-800 dark:text-white">Weekly Activity</h3>
-              <div className="flex gap-2">
-                {[7, 30].map((days) => (
-                  <button
-                    key={days}
-                    onClick={() => setPeriodDays(days)}
-                    className={`rounded-lg px-4 py-2 text-sm font-bold pressable ${
-                      periodDays === days
-                        ? "bg-slate-100 text-slate-800 shadow-sm dark:bg-white/10 dark:text-white"
-                        : "text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/5"
-                    }`}
-                  >
-                    {days} Days
-                  </button>
-                ))}
-              </div>
-            </div>
+      <div className="flex justify-end mb-6 no-print">
+        <button 
+          onClick={() => window.print()}
+          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
+        >
+          <span className="material-symbols-outlined text-lg">download</span>
+          Export Report
+        </button>
+      </div>
 
-            <div className="flex items-end justify-between h-64 gap-4 px-4">
-              {recentDays.map((data, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-4 group">
-                  <div className="relative w-full h-full flex flex-col justify-end">
-                    <div 
-                      className="w-full bg-secondary/20 group-hover:bg-secondary rounded-t-lg transition-all duration-500 ease-out relative"
-                      style={{ height: `${(data.amount / maxAmount) * 100}%` }}
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition shadow-xl z-10 whitespace-nowrap pointer-events-none">
-                        {settings.currency}{data.amount.toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{data.day}</span>
-                </div>
-              ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Row 1: Monthly Comparison & Gauge */}
+        <div className="lg:col-span-2 interactive-card p-8 rounded-3xl">
+          <div className="flex justify-between items-start mb-10">
+            <div>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Monthly Comparison</h3>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Current vs Previous Period</p>
+            </div>
+            <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${totalMonthlySpend <= totalLastMonthSpend ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+              {totalMonthlySpend <= totalLastMonthSpend ? 'Saving More' : 'Spending More'}
             </div>
           </div>
 
-          <div className="interactive-card p-8 rounded-2xl">
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-8">Top Spending Categories</h3>
-            <div className="space-y-6">
-              {categorySummary.slice(0, 5).map((cat, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${cat.color}`}></div>
-                      <span className="font-semibold text-slate-700 dark:text-slate-200">{cat.name}</span>
-                    </div>
-                    <span className="font-bold text-slate-900 dark:text-white">{settings.currency}{cat.amount.toLocaleString()}</span>
-                  </div>
-                  <div className="h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full ${cat.color} rounded-full transition-all duration-1000`} 
-                      style={{ width: `${cat.percentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-              {categorySummary.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-16 text-center gap-4 animate-in fade-in zoom-in-95 duration-700">
-                  <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center shadow-inner border border-slate-100 dark:border-white/10">
-                    <span className="material-symbols-outlined text-3xl text-slate-300 dark:text-white/20">bar_chart</span>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-slate-800 dark:text-white">No Category Data</h4>
-                    <p className="text-xs text-slate-500 mt-1">Transactions will be mapped here automatically.</p>
-                  </div>
-                </div>
-              )}
+          <div className="flex items-end gap-12 h-48 px-4">
+            <div className="flex-1 flex flex-col items-center gap-4 group">
+              <div className="relative w-full h-full flex flex-col justify-end">
+                <div 
+                  className="w-full bg-slate-100 dark:bg-white/5 rounded-2xl transition-all duration-1000"
+                  style={{ height: `${(totalLastMonthSpend / Math.max(totalMonthlySpend, totalLastMonthSpend, 1)) * 100}%` }}
+                ></div>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-black text-slate-400">Last Month</p>
+                <p className="text-base font-bold">{settings.currency}{totalLastMonthSpend.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col items-center gap-4 group">
+              <div className="relative w-full h-full flex flex-col justify-end">
+                <div 
+                  className="w-full bg-secondary rounded-2xl transition-all duration-1000 shadow-xl shadow-secondary/20"
+                  style={{ height: `${(totalMonthlySpend / Math.max(totalMonthlySpend, totalLastMonthSpend, 1)) * 100}%` }}
+                ></div>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-black text-secondary">This Month</p>
+                <p className="text-base font-bold">{settings.currency}{totalMonthlySpend.toLocaleString()}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Structure & Insights */}
-        <div className="space-y-8">
-          <div className="interactive-card p-8 rounded-2xl">
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-8 text-center">Expense Structure</h3>
-            <div className="relative w-full aspect-square flex items-center justify-center p-4">
-              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="12" className="text-slate-100 dark:text-white/5" />
-                {categorySegments.map((cat, i) => (
+        {/* Expense Structure (Donut) */}
+        <div className="interactive-card p-8 rounded-3xl flex flex-col items-center justify-center">
+          <h3 className="text-lg font-black text-slate-800 dark:text-white mb-8">Category Mix</h3>
+          <div className="relative w-48 h-48 mb-8">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="12" className="text-slate-100 dark:text-white/5" />
+              {categorySummary.reduce((acc, cat) => {
+                const circumference = 2 * Math.PI * 40;
+                const offset = (acc.sum / 100) * circumference;
+                const stroke = (cat.percentage / 100) * circumference;
+                const element = (
                   <circle
-                    key={i}
+                    key={cat.name}
                     cx="50"
                     cy="50"
-                    r={cat.radius}
+                    r="40"
                     fill="transparent"
                     stroke="currentColor"
                     strokeWidth="12"
-                    strokeDasharray={cat.strokeDasharray}
-                    strokeDashoffset={-cat.dashoffset}
+                    strokeDasharray={`${stroke} ${circumference}`}
+                    strokeDashoffset={-offset}
                     className={`transition-all duration-1000 ${cat.color.replace('bg-', 'text-')}`}
                   />
-                ))}
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-black text-slate-800 dark:text-white">
-                  {totalMonthlySpend > 0 ? "100%" : "0%"}
-                </span>
-                <span className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Efficiency</span>
-              </div>
+                );
+                return { sum: acc.sum + cat.percentage, elements: [...acc.elements, element] };
+              }, { sum: 0, elements: [] as React.ReactNode[] }).elements}
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-black">{totalMonthlySpend > 0 ? "100%" : "0%"}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Mix</span>
             </div>
-            <div className="mt-8 space-y-3">
-              {categorySummary.slice(0, 3).map((cat, i) => (
-                <div key={i} className="flex items-center justify-between text-xs p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${cat.color}`}></div>
-                    <span className="text-slate-500 dark:text-slate-400 font-medium">{cat.name}</span>
-                  </div>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">{cat.percentage}%</span>
+          </div>
+          <div className="w-full space-y-2">
+            {categorySummary.slice(0, 3).map(cat => (
+              <div key={cat.name} className="flex justify-between items-center text-xs">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${cat.color}`}></div>
+                  <span className="font-bold text-slate-500">{cat.name}</span>
                 </div>
-              ))}
+                <span className="font-black">{cat.percentage}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Spending Velocity (Line Chart) */}
+        <div className="lg:col-span-3 interactive-card p-10 rounded-[40px]">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Spending Velocity</h3>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Cumulative Cash Burn (Current Month)</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Projection</p>
+              <p className="text-xl font-black text-secondary">
+                {settings.currency}{Math.round(totalMonthlySpend / (now.getDate() || 1) * 30).toLocaleString()}
+              </p>
             </div>
           </div>
 
-          <div className="interactive-card p-8 rounded-2xl text-white shadow-xl shadow-secondary/20 group" style={{ backgroundColor: 'var(--secondary)' }}>
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-              <span className="material-symbols-outlined text-8xl">auto_awesome</span>
-            </div>
-            <h4 className="text-xl font-bold mb-2">Smart Prediction</h4>
-            <p className="text-white/90 text-sm leading-relaxed mb-6 font-medium">
-              {totalMonthlySpend > 0 
-                ? "Your spending patterns suggest you could save up to 10% more by optimizing your dining choices."
-                : "Add transactions to unlock AI-powered insights and spending predictions."}
-            </p>
-            <Link href="/insights" className="block w-full py-4 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-center text-sm font-bold pressable">
-              View Analysis
-            </Link>
+          <div className="relative h-64 w-full flex items-end gap-1 px-2">
+            {spendingVelocity.map((point, i) => (
+              <div key={i} className="flex-1 flex flex-col justify-end group relative h-full">
+                <div 
+                  className="w-full bg-secondary/10 group-hover:bg-secondary transition-all rounded-full"
+                  style={{ height: `${(point.amount / maxVelocity) * 100}%` }}
+                >
+                   <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-20 font-bold">
+                    Day {point.day}: {settings.currency}{point.amount.toLocaleString()}
+                   </div>
+                </div>
+              </div>
+            ))}
+            {/* Legend Line */}
+            <div className="absolute left-0 bottom-0 w-full h-[1px] bg-slate-200 dark:bg-white/10"></div>
+          </div>
+          <div className="flex justify-between mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <span>Day 1</span>
+            <span>Today (Day {now.getDate()})</span>
+            <span>Day 30</span>
           </div>
         </div>
+
+        {/* Detailed Breakdown */}
+        <div className="lg:col-span-3 interactive-card p-10 rounded-[40px]">
+          <h3 className="text-xl font-black mb-8">Category Breakdown</h3>
+          <div className="space-y-6">
+            {categorySummary.map((cat) => (
+              <div key={cat.name} className="space-y-3">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{cat.name}</p>
+                    <p className="text-lg font-bold">{settings.currency}{cat.amount.toLocaleString()}</p>
+                  </div>
+                  <span className="text-sm font-black text-slate-300">{cat.percentage}%</span>
+                </div>
+                <div className="h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full ${cat.color} rounded-full transition-all duration-1000`}
+                    style={{ width: `${cat.percentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
+
+      <style jsx global>{`
+        @media print {
+          .no-print { display: none !important; }
+          body { background: white !important; color: black !important; }
+          .interactive-card { border: 1px solid #eee !important; box-shadow: none !important; break-inside: avoid; }
+        }
+      `}</style>
     </StandardPageShell>
   );
 }
