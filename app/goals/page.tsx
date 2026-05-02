@@ -81,13 +81,13 @@ export default function Goals() {
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                    <p className="text-xl font-black">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status</p>
+                    <p className="text-xl font-black text-slate-900 dark:text-white">
                       {settings.currency}{goal.currentAmount.toLocaleString()} 
-                      <span className="text-sm text-slate-300 font-bold ml-1">/ {settings.currency}{goal.targetAmount.toLocaleString()}</span>
+                      <span className="text-sm text-slate-400 font-bold ml-1">/ {settings.currency}{goal.targetAmount.toLocaleString()}</span>
                     </p>
                   </div>
-                  <span className="text-2xl font-black text-slate-200">{Math.round(progress)}%</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">{Math.round(progress)}%</span>
                 </div>
 
                 <div className="h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -98,7 +98,7 @@ export default function Goals() {
                 </div>
 
                 <div className="pt-2">
-                   <p className="text-[10px] font-bold text-slate-400 leading-relaxed">
+                   <p className="text-[10px] font-bold text-slate-500 leading-relaxed">
                      {goal.type === 'saving' 
                         ? `${settings.currency}${Math.max(0, goal.targetAmount - goal.currentAmount).toLocaleString()} more needed to reach your goal.`
                         : goal.currentAmount > goal.targetAmount 

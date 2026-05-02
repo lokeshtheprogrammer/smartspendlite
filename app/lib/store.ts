@@ -163,14 +163,16 @@ export function useStore() {
     }
 
     if (t.goalId) {
-      globalGoals = globalGoals.map(g => {
-        if (g.id === t.goalId) {
-          // Any transaction linked to a goal contributes to its progress (spending or saving)
-          return { ...g, currentAmount: g.currentAmount + newT.amount };
-        }
-        return g;
-      });
-      await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
+      const amountToAdd = Number(newT.amount);
+      if (!isNaN(amountToAdd)) {
+        globalGoals = globalGoals.map(g => {
+          if (g.id === t.goalId) {
+            return { ...g, currentAmount: g.currentAmount + amountToAdd };
+          }
+          return g;
+        });
+        await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
+      }
     }
 
     await saveToStorage(STORAGE_KEYS.TRANSACTIONS, globalTransactions);
