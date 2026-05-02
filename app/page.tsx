@@ -181,57 +181,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── APP PREVIEW ─── */}
-      <section className="relative py-20 px-6 overflow-hidden">
-        <div className="max-w-5xl mx-auto relative group">
-          <div className="absolute inset-0 bg-[#0057c2]/20 blur-[100px] rounded-full scale-75 opacity-50"></div>
-          <div className="relative bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-4 md:p-8 shadow-2xl transform transition-transform duration-700 hover:scale-[1.01]">
-            <div className="aspect-[16/9] bg-[#0d1424] rounded-[24px] overflow-hidden border border-white/5 flex flex-col">
-              {/* Fake UI Header */}
-              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/40"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/40"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500/40"></div>
-                </div>
-                <div className="w-32 h-2 bg-white/10 rounded-full"></div>
-                <div className="w-8 h-8 rounded-full bg-white/10"></div>
-              </div>
-              {/* Fake UI Body */}
-              <div className="flex-1 p-8 grid grid-cols-3 gap-6">
-                <div className="col-span-2 space-y-6">
-                  <div className="h-40 bg-gradient-to-br from-[#0057c2]/20 to-purple-600/10 rounded-3xl border border-white/10 p-6 flex flex-col justify-end">
-                     <div className="w-24 h-2 bg-white/20 rounded-full mb-3"></div>
-                     <div className="w-48 h-8 bg-white/40 rounded-xl"></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="h-24 bg-white/5 rounded-2xl border border-white/10"></div>
-                    <div className="h-24 bg-white/5 rounded-2xl border border-white/10"></div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="h-full bg-white/5 rounded-3xl border border-white/10 p-6">
-                    <div className="w-full h-4 bg-white/20 rounded-full mb-4"></div>
-                    {[1,2,3,4,5].map(i => (
-                      <div key={i} className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-white/10"></div>
-                        <div className="flex-1 space-y-2">
-                          <div className="w-full h-2 bg-white/10 rounded-full"></div>
-                          <div className="w-1/2 h-2 bg-white/5 rounded-full"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              {/* Glass overlay with text */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#03071d] via-transparent to-transparent flex items-end justify-center pb-12">
-                <p className="text-white/60 font-medium text-lg">Clean. Dark. Simple. Built for speed.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* ─── STATS STRIP ─── */}
       <section className="py-16 border-y border-white/5" style={{ background: 'rgba(255,255,255,0.01)' }}>
