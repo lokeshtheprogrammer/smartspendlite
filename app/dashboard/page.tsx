@@ -57,7 +57,7 @@ export default function Dashboard() {
         <div className="lg:col-span-8 space-y-8">
           
           {/* Main Net Worth Card */}
-          <div className="interactive-card p-10 rounded-[40px] bg-[#0057c2] text-white overflow-hidden relative group">
+          <div className="interactive-card p-10 rounded-[40px] !bg-[#0057c2] text-white overflow-hidden relative group border-none shadow-2xl">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
               <span className="material-symbols-outlined text-[120px]">account_balance_wallet</span>
             </div>
@@ -142,7 +142,7 @@ export default function Dashboard() {
         {/* Right Column: AI & Recurring */}
         <div className="lg:col-span-4 space-y-8">
           
-          <div className="interactive-card p-10 rounded-[40px] bg-slate-900 text-white border-none shadow-2xl">
+          <div className="interactive-card p-10 rounded-[40px] !bg-slate-900 text-white border-none shadow-2xl">
             <span className="material-symbols-outlined text-secondary text-4xl mb-6">bolt</span>
             <h4 className="text-2xl font-black mb-4 tracking-tight">Recurring Bills</h4>
             <div className="space-y-4">
