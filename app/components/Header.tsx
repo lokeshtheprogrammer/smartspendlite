@@ -58,6 +58,7 @@ export default function Header() {
     { href: "/transactions", label: "History", icon: "history" },
     { href: "/analytics", label: "Analysis", icon: "bar_chart" },
     { href: "/budget", label: "Budget", icon: "tune" },
+    { href: "/goals", label: "Goals", icon: "target" },
     { href: "/insights", label: "Tips", icon: "lightbulb" },
   ];
 

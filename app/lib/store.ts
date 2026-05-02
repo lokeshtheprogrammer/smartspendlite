@@ -11,6 +11,7 @@ export type Transaction = {
   type: "income" | "expense";
   accountId?: string;
   receiptUrl?: string;
+  goalId?: string; // Link to a specific goal
 };
 
 export type Budget = {
@@ -26,6 +27,17 @@ export type Account = {
   balance: number;
 };
 
+export type Goal = {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  type: "saving" | "event"; // saving (accumulate) or event (spending limit)
+  deadline?: string;
+  icon: string;
+  color: string;
+};
+
 export type RecurringTransaction = {
   id: string;
   amount: number;
@@ -33,7 +45,7 @@ export type RecurringTransaction = {
   note: string;
   frequency: "monthly" | "weekly";
   type: "income" | "expense";
-  lastTriggered?: string; // Date string
+  lastTriggered?: string;
 };
 
 export type UserSettings = {
@@ -45,40 +57,27 @@ export type UserSettings = {
 };
 
 const STORAGE_KEYS = {
-  TRANSACTIONS: "smartspend_transactions_v3",
-  BUDGETS: "smartspend_budgets_v3",
-  SETTINGS: "smartspend_settings_v3",
-  ACCOUNTS: "smartspend_accounts_v3",
-  RECURRING: "smartspend_recurring_v3",
+  TRANSACTIONS: "smartspend_transactions_v4",
+  BUDGETS: "smartspend_budgets_v4",
+  SETTINGS: "smartspend_settings_v4",
+  ACCOUNTS: "smartspend_accounts_v4",
+  RECURRING: "smartspend_recurring_v4",
+  GOALS: "smartspend_goals_v4",
 };
 
-// --- Security Middleware ---
+// --- Security ---
 const getEncryptionKey = async (): Promise<CryptoKey> => {
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode('smartspend-secure-key-v1'),
-    'PBKDF2',
-    false,
-    ['deriveBits', 'deriveKey']
-  );
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: new TextEncoder().encode('smartspend-salt-2024'), iterations: 100000, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    true,
-    ['encrypt', 'decrypt']
-  );
+  const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode('smartspend-secure-key-v1'), 'PBKDF2', false, ['deriveBits', 'deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: new TextEncoder().encode('smartspend-salt-2024'), iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
 };
 
 const encrypt = async (data: string): Promise<string> => {
   try {
     const key = await getEncryptionKey();
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encoded = new TextEncoder().encode(data);
-    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(data));
     const combined = new Uint8Array(iv.length + encrypted.byteLength);
-    combined.set(iv);
-    combined.set(new Uint8Array(encrypted), iv.length);
+    combined.set(iv); combined.set(new Uint8Array(encrypted), iv.length);
     return btoa(String.fromCharCode(...combined));
   } catch { return btoa(data); }
 };
@@ -103,9 +102,8 @@ let globalAccounts: Account[] = [
   { id: "upi", name: "UPI / Wallet", type: "upi", balance: 0 },
 ];
 let globalRecurring: RecurringTransaction[] = [];
-let globalSettings: UserSettings = {
-  currency: "Rs", income: 0, name: "", onboarded: false, photoUrl: "",
-};
+let globalGoals: Goal[] = [];
+let globalSettings: UserSettings = { currency: "Rs", income: 0, name: "", onboarded: false, photoUrl: "" };
 let globalIsLoaded = false;
 let listeners: Array<() => void> = [];
 
@@ -128,24 +126,13 @@ export function useStore() {
             }
             return null;
           };
-
-          const t = await load(STORAGE_KEYS.TRANSACTIONS);
-          if (t) globalTransactions = t;
-          const b = await load(STORAGE_KEYS.BUDGETS);
-          if (b) globalBudgets = b;
-          const s = await load(STORAGE_KEYS.SETTINGS);
-          if (s) globalSettings = { ...globalSettings, ...s };
-          const a = await load(STORAGE_KEYS.ACCOUNTS);
-          if (a) globalAccounts = a;
-          const r = await load(STORAGE_KEYS.RECURRING);
-          if (r) globalRecurring = r;
-
-        } catch (e) {
-          console.error("Store load error", e);
-        } finally {
-          globalIsLoaded = true;
-          notify();
-        }
+          const t = await load(STORAGE_KEYS.TRANSACTIONS); if (t) globalTransactions = t;
+          const b = await load(STORAGE_KEYS.BUDGETS); if (b) globalBudgets = b;
+          const s = await load(STORAGE_KEYS.SETTINGS); if (s) globalSettings = { ...globalSettings, ...s };
+          const a = await load(STORAGE_KEYS.ACCOUNTS); if (a) globalAccounts = a;
+          const r = await load(STORAGE_KEYS.RECURRING); if (r) globalRecurring = r;
+          const g = await load(STORAGE_KEYS.GOALS); if (g) globalGoals = g;
+        } catch (e) { console.error(e); } finally { globalIsLoaded = true; notify(); }
       })();
     }
     return () => { listeners = listeners.filter(l => l !== forceUpdate); };
@@ -156,7 +143,7 @@ export function useStore() {
     localStorage.setItem(key, encrypted);
   };
 
-  const addTransaction = async (t: Omit<Transaction, "id" | "date" | "type"> & Partial<Pick<Transaction, "type" | "date" | "accountId" | "receiptUrl">>) => {
+  const addTransaction = async (t: Omit<Transaction, "id" | "date" | "type"> & Partial<Pick<Transaction, "type" | "date" | "accountId" | "receiptUrl" | "goalId">>) => {
     const newT: Transaction = {
       ...t,
       type: t.type ?? "expense",
@@ -165,12 +152,23 @@ export function useStore() {
     };
     globalTransactions = [newT, ...globalTransactions];
     
-    // Update account balance
     if (t.accountId) {
       const acc = globalAccounts.find(a => a.id === t.accountId);
       if (acc) {
         acc.balance += (newT.type === "income" ? newT.amount : -newT.amount);
         await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
+      }
+    }
+
+    if (t.goalId) {
+      const goal = globalGoals.find(g => g.id === t.goalId);
+      if (goal) {
+        if (goal.type === "saving" && newT.type === "income") {
+           goal.currentAmount += newT.amount;
+        } else if (goal.type === "event" && newT.type === "expense") {
+           goal.currentAmount += newT.amount; // track spending against event limit
+        }
+        await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
       }
     }
 
@@ -184,16 +182,16 @@ export function useStore() {
     notify();
   };
 
-  const addRecurring = async (rt: Omit<RecurringTransaction, "id">) => {
-    const newRT: RecurringTransaction = { ...rt, id: Math.random().toString(36).substring(2, 11) };
-    globalRecurring = [...globalRecurring, newRT];
-    await saveToStorage(STORAGE_KEYS.RECURRING, globalRecurring);
+  const addGoal = async (goal: Omit<Goal, "id" | "currentAmount">) => {
+    const newGoal: Goal = { ...goal, id: Math.random().toString(36).substring(2, 11), currentAmount: 0 };
+    globalGoals = [...globalGoals, newGoal];
+    await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
     notify();
   };
 
-  const deleteRecurring = async (id: string) => {
-    globalRecurring = globalRecurring.filter(r => r.id !== id);
-    await saveToStorage(STORAGE_KEYS.RECURRING, globalRecurring);
+  const deleteGoal = async (id: string) => {
+    globalGoals = globalGoals.filter(g => g.id !== id);
+    await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
     notify();
   };
 
@@ -219,6 +217,14 @@ export function useStore() {
         await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
       }
     }
+    if (t?.goalId) {
+      const goal = globalGoals.find(g => g.id === t.goalId);
+      if (goal) {
+        if (goal.type === "saving" && t.type === "income") goal.currentAmount -= t.amount;
+        else if (goal.type === "event" && t.type === "expense") goal.currentAmount -= t.amount;
+        await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
+      }
+    }
     globalTransactions = globalTransactions.filter((t) => t.id !== id);
     await saveToStorage(STORAGE_KEYS.TRANSACTIONS, globalTransactions);
     notify();
@@ -229,6 +235,7 @@ export function useStore() {
     budgets: globalBudgets,
     accounts: globalAccounts,
     recurring: globalRecurring,
+    goals: globalGoals,
     settings: globalSettings,
     isLoaded: globalIsLoaded,
     addTransaction,
@@ -236,7 +243,7 @@ export function useStore() {
     updateBudget,
     updateSettings,
     updateAccount,
-    addRecurring,
-    deleteRecurring,
+    addGoal,
+    deleteGoal,
   };
 }

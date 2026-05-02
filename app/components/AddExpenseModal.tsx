@@ -21,12 +21,13 @@ const CATEGORIES = [
 ];
 
 export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
-  const { addTransaction, accounts, settings } = useStore();
+  const { addTransaction, accounts, goals, settings } = useStore();
   const [amount, setAmount] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0].id);
   const [note, setNote] = useState("");
   const [smartText, setSmartText] = useState("");
   const [selectedAccountId, setSelectedAccountId] = useState(accounts[0]?.id || "");
+  const [selectedGoalId, setSelectedGoalId] = useState<string>("");
   const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined);
   const [isRecurring, setIsRecurring] = useState(false);
   
@@ -84,12 +85,14 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
       note: note || "General Entry",
       type: selectedCategory === "income" ? "income" : "expense",
       accountId: selectedAccountId,
+      goalId: selectedGoalId || undefined,
       receiptUrl: receiptUrl,
     });
     
     setAmount("");
     setNote("");
     setSmartText("");
+    setSelectedGoalId("");
     setReceiptUrl(undefined);
     onClose();
   };
@@ -131,7 +134,7 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
 
             {/* Amount Display */}
             <div className="text-center py-2">
-              <div className="flex items-center justify-center gap-1">
+              <div className="flex items-center justify-center gap-2 group/amt">
                 <span className="text-2xl font-black text-slate-300">{settings.currency}</span>
                 <input
                   ref={inputRef}
@@ -139,8 +142,16 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
                   placeholder="0"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSubmit(e)}
                   className="min-w-0 bg-transparent text-5xl font-black text-slate-900 dark:text-white w-full outline-none text-center placeholder:text-slate-50 dark:placeholder:text-white/5"
                 />
+                <button 
+                  type="submit"
+                  disabled={!amount || parseFloat(amount) <= 0}
+                  className="absolute right-0 p-2 bg-secondary text-white rounded-full shadow-lg opacity-0 group-focus-within/amt:opacity-100 transition-opacity disabled:opacity-0"
+                >
+                  <span className="material-symbols-outlined">check</span>
+                </button>
               </div>
             </div>
 
@@ -180,15 +191,31 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
               </div>
             </div>
 
-            {/* Extras */}
-            <div className="flex gap-3">
-              <input
-                type="text"
-                placeholder="Note..."
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                className="flex-[2] bg-slate-50 dark:bg-white/5 py-3 px-4 rounded-xl text-xs font-bold outline-none"
-              />
+            {/* Goal Link & Extras */}
+            <div className="space-y-2">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Link to Goal (Optional)</p>
+              <div className="flex gap-2">
+                <select 
+                  value={selectedGoalId}
+                  onChange={e => setSelectedGoalId(e.target.value)}
+                  className="flex-1 bg-slate-50 dark:bg-white/5 py-3 px-4 rounded-xl text-xs font-bold outline-none border border-transparent focus:border-[#0057c2]/30 appearance-none"
+                >
+                  <option value="">No Goal</option>
+                  {goals.map(g => (
+                    <option key={g.id} value={g.id}>{g.name} ({g.type})</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Note..."
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  className="flex-[2] bg-slate-50 dark:bg-white/5 py-3 px-4 rounded-xl text-xs font-bold outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
