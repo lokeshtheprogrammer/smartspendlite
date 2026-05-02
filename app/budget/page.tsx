@@ -165,15 +165,15 @@ export default function Budget() {
                             className="bg-transparent border-b border-secondary font-bold text-lg w-20 outline-none"
                           />
                         ) : (
-                          <p className="text-lg font-bold group-hover:text-secondary transition-colors">
-                            {settings.currency}{cat.limit > 0 ? cat.limit.toLocaleString() : "Set Limit"}
+                          <p className="text-lg font-bold group-hover:text-secondary transition-colors text-slate-900 dark:text-white">
+                            {settings.currency} {cat.limit > 0 ? cat.limit.toLocaleString() : "Set Limit"}
                           </p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-300 uppercase">Spent</p>
-                      <p className="text-sm font-black">{settings.currency}{cat.spent.toLocaleString()}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Spent</p>
+                      <p className="text-sm font-black text-slate-900 dark:text-white">{settings.currency} {cat.spent.toLocaleString()}</p>
                     </div>
                   </div>
                   <div className="h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -190,30 +190,30 @@ export default function Budget() {
 
         {/* Right Column: AI Insights & Management */}
         <div className="space-y-8">
-           <div className="interactive-card p-8 rounded-3xl bg-slate-900 text-white border-none shadow-2xl">
+           <div className="interactive-card p-8 rounded-3xl !bg-slate-900 text-white border-none shadow-2xl">
               <span className="material-symbols-outlined text-secondary text-4xl mb-6">psychology</span>
               <h4 className="text-xl font-black mb-4 tracking-tight">Smart Suggestions</h4>
               <div className="space-y-4">
                 {spentTotal < totalBudget * 0.8 ? (
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">Surplus Alert</p>
-                    <p className="text-sm leading-relaxed">You have a projected surplus of {settings.currency}{Math.round(totalBudget - projectedTotal).toLocaleString()}. Consider moving this to your Emergency Fund or a liquid SIP.</p>
+                    <p className="text-sm leading-relaxed text-white/80">You have a projected surplus. Consider moving this to your Emergency Fund or a liquid SIP.</p>
                   </div>
                 ) : (
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <p className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-1">Optimization</p>
-                    <p className="text-sm leading-relaxed">Your "Other" category is unusually high. Reviewing these could save you up to {settings.currency}1,200 this month.</p>
+                    <p className="text-sm leading-relaxed text-white/80">Your "Other" category is unusually high. Reviewing these could save you more this month.</p>
                   </div>
                 )}
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                   <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Tax Tip</p>
-                  <p className="text-sm leading-relaxed">Keep digital copies of your utility bills. These can be used for address proof or reimbursement claims.</p>
+                  <p className="text-sm leading-relaxed text-white/80">Keep digital copies of your utility bills. These can be used for address proof or reimbursement claims.</p>
                 </div>
               </div>
            </div>
 
-           <div className="interactive-card p-8 rounded-3xl">
-              <h4 className="text-lg font-black mb-6">Budget Strategy</h4>
+           <div className="interactive-card p-8 rounded-3xl border border-slate-100 dark:border-white/5">
+              <h4 className="text-lg font-black mb-6 text-slate-900 dark:text-white">Budget Strategy</h4>
               <div className="space-y-6">
                 {[
                   { label: "Needs", pct: 50, color: "bg-blue-500" },
