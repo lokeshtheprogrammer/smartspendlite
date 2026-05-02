@@ -196,6 +196,8 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          </div>
+
           <div className="interactive-card p-8 rounded-[40px] border border-slate-100 dark:border-white/5">
             <h4 className="text-xl font-black text-slate-900 dark:text-white mb-6">Target Tracking</h4>
             <div className="space-y-6">
