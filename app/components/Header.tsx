@@ -54,11 +54,11 @@ export default function Header() {
   if (pathname === "/" || pathname === "/onboarding") return null;
 
   const navItems = [
-    { href: "/dashboard", label: "Command", icon: "space_dashboard" },
-    { href: "/transactions", label: "Vault", icon: "shield_lock" },
-    { href: "/analytics", label: "Telemetry", icon: "query_stats" },
-    { href: "/budget", label: "Limits", icon: "tune" },
-    { href: "/insights", label: "Intelligence", icon: "psychology" },
+    { href: "/dashboard", label: "Dashboard", icon: "space_dashboard" },
+    { href: "/transactions", label: "History", icon: "history" },
+    { href: "/analytics", label: "Analysis", icon: "bar_chart" },
+    { href: "/budget", label: "Budget", icon: "tune" },
+    { href: "/insights", label: "Tips", icon: "lightbulb" },
   ];
 
   return (
@@ -70,7 +70,7 @@ export default function Header() {
               <Image src="/logo.png" alt="SuperSpend Lite Logo" width={40} height={40} unoptimized className="h-full w-full object-cover" />
             </div>
             <span className="hidden max-w-[200px] truncate text-lg font-black text-slate-900 dark:text-white sm:inline-block">
-              SmartSpend
+              SuperSpend
             </span>
           </Link>
 
@@ -101,8 +101,8 @@ export default function Header() {
             className="flex min-w-0 shrink-0 items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-2.5 text-white shadow-xl shadow-secondary/20 pressable glow-button hover:shadow-secondary/35 sm:rounded-2xl sm:px-6 sm:py-3 relative"
             title="Quick Capture"
           >
-            <span className="material-symbols-outlined text-xl flex-shrink-0 w-6 h-6 flex items-center justify-center overflow-hidden notranslate">bolt</span>
-            <span className="hidden md:inline font-black text-sm whitespace-nowrap">Quick Capture</span>
+            <span className="material-symbols-outlined text-xl flex-shrink-0 w-6 h-6 flex items-center justify-center overflow-hidden notranslate">add_circle</span>
+            <span className="hidden md:inline font-black text-sm whitespace-nowrap">Add Expense</span>
           </button>
           
           <div className="hidden h-8 w-[1px] bg-slate-200 dark:bg-white/10 sm:block"></div>
