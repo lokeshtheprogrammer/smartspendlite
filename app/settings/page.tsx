@@ -6,13 +6,19 @@ import { useAuth } from "../lib/auth";
 import StandardPageShell from "../components/StandardPageShell";
 
 export default function Settings() {
-  const { settings, transactions, updateSettings, isLoaded } = useStore();
+  const { settings, transactions, recurring, updateSettings, isLoaded, addRecurring, deleteRecurring } = useStore();
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [income, setIncome] = useState("");
   const [currency, setCurrency] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isDark, setIsDark] = useState(false);
+
+  // Recurring Bill state
+  const [recNote, setRecNote] = useState("");
+  const [recAmount, setRecAmount] = useState("");
+  const [recCategory, setRecCategory] = useState("utilities");
+  const [recFreq, setRecFreq] = useState<"monthly" | "weekly">("monthly");
 
   // Photo: saved custom > Google profile > initials
   const photoSrc = settings.photoUrl || user?.photoURL || "";
@@ -178,6 +184,61 @@ export default function Settings() {
                   <option value="GBP">GBP (GBP)</option>
                 </select>
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Recurring Bills</h3>
+            <div className="interactive-card p-8 rounded-[32px] space-y-8">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input 
+                    placeholder="Bill Name (e.g. Rent)"
+                    value={recNote}
+                    onChange={e => setRecNote(e.target.value)}
+                    className="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl text-sm font-bold outline-none"
+                  />
+                  <div className="flex gap-2">
+                    <input 
+                      type="number"
+                      placeholder="Amount"
+                      value={recAmount}
+                      onChange={e => setRecAmount(e.target.value)}
+                      className="flex-1 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl text-sm font-bold outline-none"
+                    />
+                    <button 
+                      onClick={() => {
+                        const amt = parseFloat(recAmount);
+                        if (recNote && amt > 0) {
+                          addRecurring({ note: recNote, amount: amt, category: recCategory, frequency: recFreq, type: "expense" });
+                          setRecNote(""); setRecAmount("");
+                        }
+                      }}
+                      className="px-6 bg-secondary text-white rounded-2xl font-black text-xs uppercase"
+                    >Add</button>
+                  </div>
+               </div>
+
+               <div className="space-y-3">
+                 {recurring.map(r => (
+                   <div key={r.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-transparent hover:border-secondary/20 transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-xl">auto_renew</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">{r.note}</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase">{r.frequency} • {settings.currency}{r.amount}</p>
+                        </div>
+                      </div>
+                      <button onClick={() => deleteRecurring(r.id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                        <span className="material-symbols-outlined text-lg">delete</span>
+                      </button>
+                   </div>
+                 ))}
+                 {recurring.length === 0 && (
+                   <p className="text-center py-6 text-xs text-slate-400 italic">No recurring bills set up yet.</p>
+                 )}
+               </div>
             </div>
           </div>
 
