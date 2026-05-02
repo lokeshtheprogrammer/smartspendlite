@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import { useStore } from "../lib/store";
+import { useAuth } from "../lib/auth";
 import StandardPageShell from "../components/StandardPageShell";
-import Image from "next/image";
 
 export default function Settings() {
   const { settings, transactions, updateSettings, isLoaded } = useStore();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [income, setIncome] = useState("");
   const [currency, setCurrency] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isDark, setIsDark] = useState(false);
+
+  // Photo: saved custom > Google profile > initials
+  const photoSrc = settings.photoUrl || user?.photoURL || "";
 
   const toggleDarkMode = () => {
     const html = document.documentElement;
@@ -84,13 +88,15 @@ export default function Settings() {
             <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-secondary/10 to-transparent"></div>
             
             <div className="relative group z-10">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-white/10 shadow-2xl">
-                <Image 
-                  alt="Profile" 
-                  className="w-full h-full object-cover" 
-                  src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200" 
-                  width={128} height={128} 
-                />
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-white/10 shadow-2xl bg-slate-100 dark:bg-white/10">
+                {photoSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photoSrc} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-secondary text-white text-4xl font-black">
+                    {(settings.name || user?.displayName || "M").charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
               <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-secondary text-white rounded-full border-4 border-white dark:border-[#1A1F36] flex items-center justify-center">
                 <span className="material-symbols-outlined text-sm">verified</span>

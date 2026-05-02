@@ -22,6 +22,7 @@ export type UserSettings = {
   income: number;
   name: string;
   onboarded: boolean;
+  photoUrl?: string;
 };
 
 const STORAGE_KEYS = {
@@ -128,6 +129,7 @@ let globalSettings: UserSettings = {
   income: 0,
   name: "",
   onboarded: false,
+  photoUrl: "",
 };
 let globalIsLoaded = false;
 let listeners: Array<() => void> = [];
