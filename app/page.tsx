@@ -140,7 +140,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-4 max-w-3xl">
-            <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9]">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">
               Manage Money
               <span className="block text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #4f8cff, #0057c2)' }}>
                 The Smart Way
@@ -249,7 +249,7 @@ export default function Home() {
       <section className="py-32 px-6 max-w-6xl mx-auto relative">
         <div className="text-center mb-24 space-y-4">
           <p className="text-[#0057c2] text-xs font-black uppercase tracking-[0.3em]">Powerful Intelligence</p>
-          <h2 className="text-5xl md:text-7xl font-black tracking-tight">Everything for <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #4f8cff, #0057c2)' }}>Real India</span></h2>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight">Everything for <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #4f8cff, #0057c2)' }}>Real India</span></h2>
           <p className="text-white/40 text-lg max-w-2xl mx-auto leading-relaxed">We stripped away the complexity to give you the most efficient money manager you'll ever use.</p>
         </div>
 
@@ -284,7 +284,7 @@ export default function Home() {
               <span className="material-symbols-outlined text-base">verified_user</span>
               100% Privacy Guaranteed
             </div>
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-[1.1]">Your data never leaves <span className="text-[#0057c2]">your device.</span></h2>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">Your data never leaves <span className="text-[#0057c2]">your device.</span></h2>
             <p className="text-white/50 text-xl leading-relaxed">We use AES-256 local encryption. No clouds, no spying, no selling your spending habits to advertisers. Your financial life is your business.</p>
             <div className="flex flex-wrap gap-4 pt-4">
               <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
@@ -330,7 +330,7 @@ export default function Home() {
       <section className="py-40 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[#0057c2]/5 blur-[120px] rounded-full scale-50"></div>
         <div className="max-w-3xl mx-auto text-center space-y-10 relative z-10">
-          <h2 className="text-5xl md:text-8xl font-black tracking-tight leading-[0.9]">
+          <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
             Take Control of <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #4f8cff, #0057c2)' }}>Your Wealth.</span>
           </h2>
           <p className="text-white/50 text-xl leading-relaxed">Join thousands of Indians who track their money smarter with SuperSpend Lite. It takes less than 60 seconds to start.</p>
