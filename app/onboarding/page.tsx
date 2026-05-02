@@ -66,8 +66,8 @@ export default function Onboarding() {
         {step === 1 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
             <div className="space-y-4">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">Welcome to your <span className="text-[#afc6ff]">Financial Atelier</span></h1>
-              <p className="text-[#afc6ff]/60 text-base sm:text-lg">A space designed for precision and clarity. What is your name?</p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">Welcome to <span className="text-[#afc6ff]">SmartSpend</span></h1>
+              <p className="text-[#afc6ff]/60 text-base sm:text-lg">Track your money, save more, stress less. What is your name?</p>
             </div>
             <div className="space-y-4">
               <input 
@@ -91,8 +91,8 @@ export default function Onboarding() {
         {step === 2 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
             <div className="space-y-4">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">Set your <span className="text-[#afc6ff]">Base Economy</span></h1>
-              <p className="text-[#afc6ff]/60 text-base sm:text-lg">Select your currency and monthly income baseline.</p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">Set your <span className="text-[#afc6ff]">Monthly Income</span></h1>
+              <p className="text-[#afc6ff]/60 text-base sm:text-lg">Select your currency and enter your monthly salary or income.</p>
             </div>
             <div className="space-y-8">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
@@ -137,7 +137,7 @@ export default function Onboarding() {
             </div>
             <div className="space-y-6">
               <h1 className="text-5xl font-extrabold">Everything Is <span className="text-[#afc6ff]">Set</span></h1>
-              <p className="text-[#afc6ff]/60 text-xl leading-relaxed px-4">Your wealth intelligence is now configured. Welcome to the modern era of asset management.</p>
+              <p className="text-[#afc6ff]/60 text-xl leading-relaxed px-4">You're all set! SmartSpend is ready to help you manage your money better.</p>
             </div>
             <button 
               onClick={finishOnboarding}
@@ -151,7 +151,7 @@ export default function Onboarding() {
 
       <div className="absolute bottom-12 text-[#afc6ff]/30 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center gap-4">
         <div className="w-1.5 h-1.5 rounded-full bg-[#afc6ff]/40"></div>
-        Encrypted Local Storage / Financial Atelier v1.0
+        Your data is safe on this device • SmartSpend v1.0
       </div>
     </div>
   );

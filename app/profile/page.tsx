@@ -10,12 +10,12 @@ export default function Profile() {
   const totalSpent = transactions.filter(t => t.type !== "income").reduce((acc, t) => acc + t.amount, 0);
   const healthScore = totalSpent > 0 ? 82 : 0;
 
-  if (!isLoaded) return <div className="p-12 text-center text-gray-400">Loading identity...</div>;
+  if (!isLoaded) return <div className="p-12 text-center text-gray-400">Loading your profile...</div>;
 
   return (
     <StandardPageShell
-      title="Identity"
-      description="Personalized financial signature and health metrics."
+      title="My Profile"
+      description="Your personal details and spending summary."
       showBack={true}
     >
       <div className="space-y-12">
@@ -37,7 +37,7 @@ export default function Profile() {
 
             <div className="mt-8 space-y-2 z-10 min-w-0">
                 <h2 className="text-4xl font-black text-[#1A1F36] dark:text-white truncate max-w-full">{settings.name || "Member"}</h2>
-                <p className="text-xs font-bold text-secondary uppercase tracking-widest">Atelier Tier I</p>
+                <p className="text-xs font-bold text-secondary uppercase tracking-widest">Premium Member</p>
             </div>
         </section>
 
@@ -48,7 +48,7 @@ export default function Profile() {
                 <p className="text-4xl font-black text-secondary">{healthScore}</p>
             </div>
             <div className="interactive-card p-8 rounded-[28px] space-y-2">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Wealth Volume</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Spent</p>
                 <p className="text-4xl font-black text-[#1A1F36] dark:text-white truncate max-w-full">{settings.currency}{(totalSpent / 1000).toFixed(1)}k</p>
             </div>
             <div className="interactive-card p-8 rounded-[28px] space-y-2">
@@ -63,10 +63,10 @@ export default function Profile() {
                 <span className="material-symbols-outlined text-5xl">lock</span>
             </div>
             <div className="flex-1 space-y-2 min-w-0">
-                <h3 className="text-2xl font-black truncate max-w-full">Zero-Knowledge Storage</h3>
-                <p className="text-white/80 text-sm leading-relaxed font-medium">Your data is currently fortified with client-side obfuscation. No financial records ever leave this physical device.</p>
+                <h3 className="text-2xl font-black truncate max-w-full">Your Data is Private</h3>
+                <p className="text-white/80 text-sm leading-relaxed font-medium">All your data is saved only on your device. Nothing is shared with anyone.</p>
             </div>
-            <div className="shrink-0 font-bold text-xs uppercase border border-white/30 px-6 py-3 rounded-full tracking-widest backdrop-blur-sm">Active Protection</div>
+            <div className="shrink-0 font-bold text-xs uppercase border border-white/30 px-6 py-3 rounded-full tracking-widest backdrop-blur-sm">Safe & Secure</div>
         </section>
       </div>
     </StandardPageShell>

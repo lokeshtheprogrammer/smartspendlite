@@ -35,7 +35,7 @@ export default function Settings() {
   };
 
   const handleResetData = () => {
-    if (confirm("Are you sure you want to crystalize (delete) all local financial data? This cannot be undone.")) {
+    if (confirm("Are you sure you want to delete all your local data? This cannot be undone.")) {
       localStorage.clear();
       window.location.reload();
     }
@@ -73,8 +73,8 @@ export default function Settings() {
 
   return (
     <StandardPageShell
-      title="Atelier Profile"
-      description="Refine your financial identifiers and application environment."
+      title="My Profile"
+      description="Update your name, income, and app settings."
       showBack={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -123,7 +123,7 @@ export default function Settings() {
                 }}
                 className="w-full mt-10 py-4 rounded-2xl bg-secondary text-white font-bold text-sm shadow-xl shadow-secondary/20 pressable"
               >
-                {isEditing ? "Save Identity" : "Edit Profile"}
+                {isEditing ? "Save Changes" : "Edit Profile"}
               </button>
             </div>
           </section>
@@ -138,12 +138,12 @@ export default function Settings() {
         {/* Configuration Area */}
         <div className="lg:col-span-8 space-y-12">
           <div className="space-y-6">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Financial Identifiers</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Your Details</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Monthly Income Setting */}
               <div className="interactive-card p-8 rounded-[24px] space-y-4">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Revenue Ceiling</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Income</p>
                 <div className="flex items-center gap-4">
                   <span className="text-2xl font-black text-secondary">{activeCurrency}</span>
                   <input 
@@ -176,13 +176,13 @@ export default function Settings() {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Application Environment</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">App Settings</h3>
             
             <div className="space-y-4">
               <div className="interactive-card p-8 rounded-[24px] flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-[#1A1F36] dark:text-white">Immersive Dark Mode</p>
-                  <p className="text-[10px] text-slate-400 font-medium lowercase">Switch to the obsidian aesthetic</p>
+                  <p className="text-[10px] text-slate-400 font-medium lowercase">Switch to dark background</p>
                 </div>
                 <button 
                   onClick={toggleDarkMode}
@@ -203,7 +203,7 @@ export default function Settings() {
                     <span className="material-symbols-outlined">download</span>
                   </div>
                   <div className="min-w-0 text-left">
-                    <p className="text-sm font-bold text-[#1A1F36] dark:text-white">Export Dossier</p>
+                    <p className="text-sm font-bold text-[#1A1F36] dark:text-white">Download My Data</p>
                     <p className="text-[10px] text-slate-400 font-medium">Download transaction history as CSV</p>
                   </div>
                 </div>
@@ -219,8 +219,8 @@ export default function Settings() {
                     <span className="material-symbols-outlined">sync</span>
                   </div>
                   <div className="min-w-0 text-left">
-                    <p className="text-sm font-bold text-[#1A1F36] dark:text-white">Persist State</p>
-                    <p className="text-[10px] text-slate-400 font-medium">Force save current environment data</p>
+                    <p className="text-sm font-bold text-[#1A1F36] dark:text-white">Save Settings</p>
+                    <p className="text-[10px] text-slate-400 font-medium">Save all your current profile changes</p>
                   </div>
                 </div>
                 <span className="material-symbols-outlined text-slate-400 group-hover:translate-x-1 transition-transform">chevron_right</span>
@@ -235,8 +235,8 @@ export default function Settings() {
                     <span className="material-symbols-outlined">delete_sweep</span>
                   </div>
                   <div className="min-w-0 text-left">
-                    <p className="text-sm font-bold">Crystalize Data</p>
-                    <p className="text-[10px] font-medium opacity-60">Complete wipe of local localStorage vault</p>
+                    <p className="text-sm font-bold">Delete All Data</p>
+                    <p className="text-[10px] font-medium opacity-60">Permanently clear all saved data from this device</p>
                   </div>
                 </div>
                 <span className="material-symbols-outlined text-red-500 group-hover:text-white group-hover:translate-x-1 transition-transform">warning</span>
@@ -245,7 +245,7 @@ export default function Settings() {
           </div>
 
           <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.5em] pt-12">
-            SmartSpend Lite v2.5.0 / Atelier Systems Inc.
+            SmartSpend Lite v2.5.0 — Made with ❤️ for India
           </p>
         </div>
       </div>

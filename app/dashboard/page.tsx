@@ -95,8 +95,8 @@ export default function Dashboard() {
           const isLarge = parsed.amount > (safeBudget * 0.1);
           const daysLeftTemp = Math.max(1, Math.floor((safeBudget - (monthlySpend + parsed.amount)) / parsed.amount));
           feedback = isLarge 
-            ? `Trajectory updated: You'll exceed total limits in ${daysLeftTemp} days at this rate.`
-            : `${cat.charAt(0).toUpperCase() + cat.slice(1)} velocity ↑ ${Math.floor(Math.random() * 8 + 4)}% this week. Projection stable.`;
+            ? `Watch out! You may run out of budget in ${daysLeftTemp} days at this pace.`
+            : `${cat.charAt(0).toUpperCase() + cat.slice(1)} spending is up a bit this week. You are doing fine.`;
         }
           
         setAiFeedback(feedback);
@@ -123,7 +123,7 @@ export default function Dashboard() {
       if (!pastedText || pastedText.length < 5) return;
       
       setOmniState("parsing");
-      setAiFeedback("Intercepting background telemetry...");
+      setAiFeedback("Reading your pasted text...");
       
       setTimeout(() => {
         const parsed = parseTransactionInput(pastedText);
@@ -136,7 +136,7 @@ export default function Dashboard() {
             type: parsed.type,
           });
           
-          setAiFeedback(`Auto-Captured ${cat}: ${settings.currency}${parsed.amount}. Ledger synced.`);
+          setAiFeedback(`Added ${cat}: ${settings.currency}${parsed.amount}. Records updated.`);
           setOmniState("success");
           setTimeout(() => {
             setOmniState("idle");
@@ -144,7 +144,7 @@ export default function Dashboard() {
           }, 2000);
         } else {
           setOmniState("idle");
-          setAiFeedback("No recognizable financial payload detected.");
+          setAiFeedback("Could not read amount. Please try again or add manually.");
           setTimeout(() => setAiFeedback(null), 3000);
         }
       }, 800); // Slight delay for dramatic AI effect
@@ -174,7 +174,7 @@ export default function Dashboard() {
 
   const waveColor = isSafe ? 'from-emerald-400 to-teal-500' : isWarning ? 'from-secondary to-purple-500' : 'from-orange-500 to-red-500';
   const waveSpeed = isSafe ? '15s' : isWarning ? '8s' : '4s';
-  const statusText = isSafe ? 'Optimal Velocity' : isWarning ? 'Approaching Threshold' : 'Critical Depletion';
+  const statusText = isSafe ? 'On Track' : isWarning ? 'Getting Close' : 'Budget Exceeded';
   const statusIcon = isSafe ? 'water_drop' : isWarning ? 'waves' : 'tsunami';
 
   const recentActivity = transactions.slice(0, 5);
@@ -224,10 +224,10 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
           
-          {/* Neural Omni-Entry Bar */}
+          {/* Quick Add - Type to Log */}
           <div className="relative group/omni animate-premium-reveal flex flex-col" style={{ animationDelay: '0ms' }}>
             <div className="flex justify-between items-end mb-2 px-1 z-10">
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Neural Link</span>
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Quick Add</span>
               <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md" title="Listening for SMS/Receipt clipboard drops">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                 <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Auto-Capture Active</span>
@@ -290,7 +290,7 @@ export default function Dashboard() {
               </div>
               <AnimatedMetric 
                 value={todaySpend} 
-                label="Digital Footprints"
+                label="Spent Today"
                 prefix={settings.currency}
                 format="currency"
                 className="mb-4"
@@ -306,7 +306,7 @@ export default function Dashboard() {
               <div className="flex justify-between items-start gap-4 mb-6">
                 <span className="text-slate-500 font-bold text-[10px] sm:text-xs uppercase tracking-widest flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full animate-pulse ${isSafe ? 'bg-emerald-500' : isWarning ? 'bg-secondary' : 'bg-red-500'}`}></span>
-                  Liquidity State
+                  Budget Status
                 </span>
                 <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10 ${isSafe ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : isWarning ? 'bg-secondary/10 text-secondary' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
                   <span className="material-symbols-outlined text-sm">{statusIcon}</span>
@@ -318,7 +318,7 @@ export default function Dashboard() {
                 <AnimatedMetric 
                   value={monthlySpend} 
                   previousValue={previousMonthSpend}
-                  label="Monthly Burn"
+                  label="This Month"
                   prefix={settings.currency}
                   format="currency"
                   trend={monthlySpend > previousMonthSpend ? "up" : "down"}
@@ -416,17 +416,17 @@ export default function Dashboard() {
             <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 blur-3xl rounded-full -mr-10 -mt-10 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-6 relative z-10">
               <span className="material-symbols-outlined text-3xl text-white">schedule</span>
-              <h3 className="text-xl font-black text-white tracking-tight">Time Travel</h3>
+              <h3 className="text-xl font-black text-white tracking-tight">Budget Forecast</h3>
             </div>
             <div className="space-y-2 relative z-10">
-              <p className="text-white/80 text-sm font-bold uppercase tracking-widest">At current burn rate</p>
+              <p className="text-white/80 text-sm font-bold uppercase tracking-widest">At your current spending</p>
               <h2 className="text-4xl sm:text-5xl font-black text-white leading-tight">
                 {settings.currency}{Math.abs(amountLeft).toLocaleString(undefined, { maximumFractionDigits: 0 })} <span className="text-xl sm:text-2xl text-white/60">{isExceeded ? 'overdrawn' : 'left'}</span>
               </h2>
               <div className="pt-6 flex items-center gap-3 border-t border-white/10 mt-4">
                 <span className="material-symbols-outlined text-white/80 text-xl">{isExceeded ? 'warning' : 'hourglass_bottom'}</span>
                 <p className="text-white text-base font-bold">
-                  {isExceeded ? <span className="text-red-300">Limits breached</span> : <>Reserves deplete in <span className="text-yellow-300">{daysLeft} days</span></>}
+                  {isExceeded ? <span className="text-red-300">Budget limit crossed</span> : <>Budget will last <span className="text-yellow-300">{daysLeft} more days</span></>}
                 </p>
               </div>
             </div>
@@ -435,7 +435,7 @@ export default function Dashboard() {
           {/* Inline Exploration (Category Velocity) */}
           <EnhancedCard variant="glass" className="p-6 animate-premium-reveal" style={{ animationDelay: '300ms' }}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-black text-slate-900 dark:text-white">Category Velocity</h3>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Spending by Category</h3>
               <span className="material-symbols-outlined text-slate-400">category</span>
             </div>
             
@@ -508,7 +508,7 @@ export default function Dashboard() {
                         </div>
 
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Recent Vectors</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Recent Expenses</p>
                           {catTransactions.length > 0 ? (
                             <div className="space-y-3">
                               {catTransactions.map(t => (

@@ -34,8 +34,8 @@ export default function Insights() {
 
   return (
     <StandardPageShell
-      title="Atelier Insights"
-      description="Interactive financial analysis powered by local intelligence."
+      title="My Insights"
+      description="Smart tips and analysis based on your spending habits."
       showBack={true}
     >
       <div className="space-y-12">

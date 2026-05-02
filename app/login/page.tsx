@@ -49,7 +49,7 @@ export default function LoginPage() {
             </div>
             <h1 className="text-3xl font-black tracking-tighter">SmartSpend</h1>
             <p className="text-slate-400 text-sm font-medium text-center px-4">
-              Access your financial atelier with secure cloud sync.
+              Sign in to manage your money smartly and securely.
             </p>
           </div>
 
@@ -102,7 +102,7 @@ export default function LoginPage() {
           </div>
 
           <div className="text-[10px] text-white/20 uppercase font-bold tracking-[0.2em] mt-4">
-            Secured by Firebase Cloud
+            Powered by Google • Safe & Secure
           </div>
         </div>
 

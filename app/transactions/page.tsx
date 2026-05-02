@@ -33,7 +33,7 @@ export default function Transactions() {
   const [filter, setFilter] = useState("");
   const [parent] = useAutoAnimate();
 
-  if (!isLoaded) return <div className="p-12 text-center text-gray-400">Loading ledger...</div>;
+  if (!isLoaded) return <div className="p-12 text-center text-gray-400">Loading transactions...</div>;
 
   // Generate predictive future transactions (Time-Travel feature)
   const tomorrow = new Date();
@@ -72,8 +72,8 @@ export default function Transactions() {
 
   return (
     <StandardPageShell
-      title="Secure Ledger"
-      description="Time-travel through your finances. Scroll into the future to see AI predictions."
+      title="My Transactions"
+      description="See your past spending and upcoming payments."
       showBack={true}
     >
       <div className="space-y-8 max-w-5xl mx-auto">
@@ -140,7 +140,7 @@ export default function Transactions() {
                       <div className="mb-4 mt-6">
                         <span className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10">
                           <span className="material-symbols-outlined text-sm">inventory_2</span>
-                          Settled Ledger
+                          Confirmed History
                         </span>
                       </div>
                     )}
@@ -168,7 +168,7 @@ export default function Transactions() {
                         
                         <div className="min-w-0 flex-1">
                           <p className={`font-extrabold text-lg sm:text-xl truncate max-w-full tracking-tight transition-colors duration-300 group-hover/card:text-secondary ${isPrediction ? 'text-secondary dark:text-secondary' : 'text-[#1A1F36] dark:text-white'}`}>
-                            {t.note || "General Ledger Entry"}
+                            {t.note || "General Entry"}
                           </p>
                           <div className="flex items-center gap-2 sm:gap-3 mt-1.5 flex-wrap">
                             <span className={`text-[10px] sm:text-xs font-black tracking-widest uppercase rounded-md px-2 py-0.5 ${isPrediction ? 'bg-secondary/10 text-secondary' : 'bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400'}`}>
@@ -196,7 +196,7 @@ export default function Transactions() {
                             }}
                             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 pressable hover:bg-red-500 hover:text-white transition-all duration-300 sm:opacity-0 sm:-translate-x-4 sm:group-hover/card:opacity-100 sm:group-hover/card:translate-x-0"
                             title="Delete transaction"
-                            aria-label={`Delete transaction: ${t.note || 'General Ledger Entry'}`}
+                            aria-label={`Delete transaction: ${t.note || 'General Entry'}`}
                           >
                             <span className="material-symbols-outlined text-2xl">delete</span>
                           </button>
@@ -217,8 +217,8 @@ export default function Transactions() {
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-3xl font-black text-[#1A1F36] dark:text-white tracking-tighter">Secure Vault Empty</h4>
-                  <p className="text-base font-medium text-slate-500 mt-3 max-w-md mx-auto leading-relaxed">No financial records match your current criteria. Your ledger is a clean slate.</p>
+                  <h4 className="text-3xl font-black text-[#1A1F36] dark:text-white tracking-tighter">No Records Found</h4>
+                  <p className="text-base font-medium text-slate-500 mt-3 max-w-md mx-auto leading-relaxed">No transactions match your search. Try a different keyword.</p>
                 </div>
               </div>
             )}

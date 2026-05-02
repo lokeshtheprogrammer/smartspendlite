@@ -48,11 +48,11 @@ export default function Home() {
         <div className="flex justify-between items-center px-12 py-6 max-w-[1600px] mx-auto">
           <div className="text-2xl font-semibold tracking-tighter text-white opacity-20 transition-opacity hover:opacity-100">SmartSpend</div>
           <nav className="hidden md:flex gap-8 opacity-20">
-            <span className="text-slate-400 font-normal text-sm tracking-tight">Command</span>
-            <span className="text-slate-400 font-normal text-sm tracking-tight">Vault</span>
-            <span className="text-slate-400 font-normal text-sm tracking-tight">Telemetry</span>
-            <span className="text-slate-400 font-normal text-sm tracking-tight">Limits</span>
-            <span className="text-slate-400 font-normal text-sm tracking-tight">Intelligence</span>
+            <span className="text-slate-400 font-normal text-sm tracking-tight">Dashboard</span>
+            <span className="text-slate-400 font-normal text-sm tracking-tight">Savings</span>
+            <span className="text-slate-400 font-normal text-sm tracking-tight">Reports</span>
+            <span className="text-slate-400 font-normal text-sm tracking-tight">Budget</span>
+            <span className="text-slate-400 font-normal text-sm tracking-tight">Tips</span>
           </nav>
           <div className="flex gap-4 opacity-20">
             <span className="material-symbols-outlined text-white">notifications</span>
@@ -95,7 +95,7 @@ export default function Home() {
             
             <div className="flex flex-col items-center gap-2">
               <div className="text-[#afc6ff]/60 text-[10px] font-bold tracking-[0.3em] uppercase">
-                {isLoaded ? "Secure Ledger Ready" : "Initializing Environment..."}
+                {isLoaded ? "App Ready" : "Loading..."}
               </div>
               
               {isLoaded && !authLoading && (
@@ -109,7 +109,7 @@ export default function Home() {
                   }}
                   className="bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 rounded-full px-8 py-3 text-xs font-bold tracking-[0.2em] uppercase transition-all hover:scale-105 active:scale-95"
                 >
-                  Enter Atelier
+                  Open App
                 </button>
               )}
             </div>
@@ -119,7 +119,7 @@ export default function Home() {
         {/* Brand Anchor */}
         <div className="absolute bottom-12 text-white/40 text-[11px] font-semibold tracking-widest uppercase flex items-center gap-3">
           <span className="w-8 h-[1px] bg-white/20"></span>
-          The Financial Atelier
+          Your Smart Money App
           <span className="w-8 h-[1px] bg-white/20"></span>
         </div>
       </main>
