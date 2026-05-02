@@ -161,15 +161,15 @@ export function useStore() {
     }
 
     if (t.goalId) {
-      const goal = globalGoals.find(g => g.id === t.goalId);
-      if (goal) {
-        if (goal.type === "saving" && newT.type === "income") {
-           goal.currentAmount += newT.amount;
-        } else if (goal.type === "event" && newT.type === "expense") {
-           goal.currentAmount += newT.amount; // track spending against event limit
+      globalGoals = globalGoals.map(g => {
+        if (g.id === t.goalId) {
+          // For saving goals, income adds to it. For event goals, expenses track spending.
+          // However, to be flexible, we'll allow both to contribute to progress.
+          return { ...g, currentAmount: g.currentAmount + newT.amount };
         }
-        await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
-      }
+        return g;
+      });
+      await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
     }
 
     await saveToStorage(STORAGE_KEYS.TRANSACTIONS, globalTransactions);

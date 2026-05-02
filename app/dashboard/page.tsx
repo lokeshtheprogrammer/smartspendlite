@@ -121,6 +121,9 @@ export default function Dashboard() {
                     <p className={`text-xl font-black ${t.type === 'income' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
                       {t.type === 'income' ? '+' : '-'}{settings.currency}{t.amount.toLocaleString()}
                     </p>
+                    {t.goalId && (
+                      <p className="text-[9px] font-black uppercase text-[#0057c2] mt-1">Goal: {goals.find(g => g.id === t.goalId)?.name}</p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -193,10 +196,31 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          <div className="interactive-card p-8 rounded-[40px] border border-slate-100 dark:border-white/5">
+            <h4 className="text-xl font-black text-slate-900 dark:text-white mb-6">Target Tracking</h4>
+            <div className="space-y-6">
+              {goals.length > 0 ? goals.slice(0, 3).map(goal => {
+                const progress = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+                return (
+                  <div key={goal.id} className="space-y-2">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                      <span className="text-slate-400">{goal.name}</span>
+                      <span className="text-slate-900 dark:text-white">{Math.round(progress)}%</span>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${goal.color}`} style={{ width: `${progress}%` }}></div>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <div className="py-4 text-center">
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">No active goals. Start planning in the Goals tab.</p>
+                </div>
+              )}
+              <Link href="/goals" className="block w-full py-3 mt-4 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-2xl text-center text-[9px] font-black uppercase tracking-widest transition-all">All Goals</Link>
+            </div>
           </div>
-
         </div>
-
       </div>
     </StandardPageShell>
   );
