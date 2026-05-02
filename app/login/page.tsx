@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth";
 import { useStore } from "../lib/store";
@@ -11,12 +11,15 @@ export default function LoginPage() {
   const { settings } = useStore();
   const [isLoading, setIsLoading] = useState(false);
 
-  // If user is already logged in, redirect based on onboarding status
-  if (user) {
-    const target = settings.onboarded ? "/dashboard" : "/onboarding";
-    router.push(target);
-    return null;
-  }
+  // Redirect logged-in users using useEffect (avoids setState-in-render warning)
+  useEffect(() => {
+    if (user) {
+      const target = settings.onboarded ? "/dashboard" : "/onboarding";
+      router.push(target);
+    }
+  }, [user, settings.onboarded, router]);
+
+  if (user) return null;
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
