@@ -125,9 +125,14 @@ export default function Dashboard() {
                 </div>
               ))}
               {transactions.length === 0 && (
-                <div className="p-20 text-center flex flex-col items-center gap-4">
-                  <span className="material-symbols-outlined text-6xl text-slate-200">history</span>
-                  <p className="text-slate-400 font-bold">No transactions found.</p>
+                <div className="p-12 text-center flex flex-col items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02] rounded-3xl m-6 border border-dashed border-slate-200 dark:border-white/10">
+                  <div className="w-12 h-12 rounded-full bg-white dark:bg-white/5 flex items-center justify-center shadow-sm">
+                    <span className="material-symbols-outlined text-slate-300">receipt_long</span>
+                  </div>
+                  <div>
+                    <p className="text-slate-600 dark:text-slate-300 font-bold text-sm">Clean Slate</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Add an entry to start tracking</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -142,9 +147,9 @@ export default function Dashboard() {
             <h4 className="text-2xl font-black mb-4 tracking-tight">Recurring Bills</h4>
             <div className="space-y-4">
               {recurring.length > 0 ? recurring.map(r => (
-                <div key={r.id} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex justify-between items-center">
+                <div key={r.id} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex justify-between items-center group/bill">
                   <div>
-                    <p className="text-sm font-bold">{r.note}</p>
+                    <p className="text-sm font-bold group-hover/bill:text-secondary transition-colors">{r.note}</p>
                     <p className="text-[10px] font-black uppercase text-white/40">{r.frequency} • {settings.currency}{r.amount}</p>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
@@ -152,32 +157,41 @@ export default function Dashboard() {
                   </div>
                 </div>
               )) : (
-                <div className="py-6 text-center">
-                  <p className="text-sm text-white/40 italic font-medium">No active recurring bills.</p>
-                  <p className="text-[10px] text-white/20 uppercase tracking-widest mt-1">Automatic tracking is off</p>
+                <div className="py-8 text-center bg-white/5 rounded-3xl border border-dashed border-white/10">
+                  <span className="material-symbols-outlined text-white/20 text-3xl mb-2">auto_renew</span>
+                  <p className="text-xs text-white/40 italic font-medium px-6">Set up automatic bills like Rent or Netflix in Settings.</p>
                 </div>
               )}
-              <Link href="/budget" className="block w-full py-4 mt-2 bg-white/10 hover:bg-white/20 rounded-2xl text-center text-xs font-black uppercase tracking-widest transition-all">Manage Bills</Link>
+              <Link href="/budget" className="block w-full py-4 mt-4 bg-white/10 hover:bg-white/20 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest transition-all">Manage Automation</Link>
             </div>
           </div>
 
           <div className="interactive-card p-8 rounded-[40px] border border-slate-100 dark:border-white/5">
-            <h4 className="text-xl font-black text-slate-900 dark:text-white mb-6">Asset Allocation</h4>
-            <div className="space-y-6">
-              {accounts.map(acc => {
-                const pct = stats.totalBalance > 0 ? (acc.balance / stats.totalBalance) * 100 : 0;
+            <h4 className="text-xl font-black text-slate-900 dark:text-white mb-6">Portfolio Split</h4>
+            <div className="space-y-5">
+              {stats.totalBalance > 0 ? accounts.map(acc => {
+                const pct = (acc.balance / stats.totalBalance) * 100;
                 return (
                   <div key={acc.id} className="space-y-2">
                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
                       <span>{acc.name}</span>
-                      <span>{Math.round(pct)}%</span>
+                      <span className="text-slate-600 dark:text-slate-300">{Math.round(pct)}%</span>
                     </div>
-                    <div className="h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                       <div className={`h-full rounded-full transition-all duration-1000 ${acc.type === 'cash' ? 'bg-orange-500' : acc.type === 'upi' ? 'bg-purple-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }}></div>
                     </div>
                   </div>
                 );
-              })}
+              }) : (
+                <div className="py-6 text-center space-y-3">
+                   <div className="flex justify-center gap-1">
+                     <div className="w-8 h-1 bg-slate-100 dark:bg-white/5 rounded-full"></div>
+                     <div className="w-12 h-1 bg-slate-100 dark:bg-white/5 rounded-full"></div>
+                     <div className="w-6 h-1 bg-slate-100 dark:bg-white/5 rounded-full"></div>
+                   </div>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Add funds to see asset allocation across your wallets.</p>
+                </div>
+              )}
             </div>
           </div>
 
