@@ -91,7 +91,7 @@ export default function Dashboard() {
                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{acc.type}</span>
                 </div>
                 <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{acc.name}</p>
-                <p className="text-2xl font-black">{settings.currency}{acc.balance.toLocaleString()}</p>
+                <p className="text-2xl font-black text-slate-900 dark:text-white">{settings.currency}{acc.balance.toLocaleString()}</p>
               </div>
             ))}
           </div>
@@ -118,7 +118,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xl font-black ${t.type === 'income' ? 'text-emerald-500' : 'text-slate-800 dark:text-white'}`}>
+                    <p className={`text-xl font-black ${t.type === 'income' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
                       {t.type === 'income' ? '+' : '-'}{settings.currency}{t.amount.toLocaleString()}
                     </p>
                   </div>
@@ -152,14 +152,17 @@ export default function Dashboard() {
                   </div>
                 </div>
               )) : (
-                <p className="text-sm text-white/40 italic">No recurring bills configured.</p>
+                <div className="py-6 text-center">
+                  <p className="text-sm text-white/40 italic font-medium">No active recurring bills.</p>
+                  <p className="text-[10px] text-white/20 uppercase tracking-widest mt-1">Automatic tracking is off</p>
+                </div>
               )}
-              <Link href="/settings" className="block w-full py-4 mt-6 bg-white/10 hover:bg-white/20 rounded-2xl text-center text-xs font-black uppercase tracking-widest transition-all">Manage Bills</Link>
+              <Link href="/budget" className="block w-full py-4 mt-2 bg-white/10 hover:bg-white/20 rounded-2xl text-center text-xs font-black uppercase tracking-widest transition-all">Manage Bills</Link>
             </div>
           </div>
 
-          <div className="interactive-card p-10 rounded-[40px] border border-slate-100 dark:border-white/5">
-            <h4 className="text-xl font-black mb-6">Asset Allocation</h4>
+          <div className="interactive-card p-8 rounded-[40px] border border-slate-100 dark:border-white/5">
+            <h4 className="text-xl font-black text-slate-900 dark:text-white mb-6">Asset Allocation</h4>
             <div className="space-y-6">
               {accounts.map(acc => {
                 const pct = stats.totalBalance > 0 ? (acc.balance / stats.totalBalance) * 100 : 0;
