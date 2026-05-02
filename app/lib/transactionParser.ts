@@ -4,6 +4,7 @@ export type ParsedTransaction = {
   category: string;
   merchant: string | null;
   date: string | null;
+  accountType?: "cash" | "bank" | "upi";
 };
 
 export function parseTransactionInput(input: string): ParsedTransaction {
@@ -11,17 +12,15 @@ export function parseTransactionInput(input: string): ParsedTransaction {
   
   // 1. Determine Type
   let type: "expense" | "income" = "expense";
-  if (lowercaseInput.includes("credited") || lowercaseInput.includes("received") || lowercaseInput.includes("salary")) {
+  if (lowercaseInput.includes("credited") || lowercaseInput.includes("received") || lowercaseInput.includes("salary") || lowercaseInput.includes("income")) {
     type = "income";
   }
 
   // 2. Extract Amount
   let amount = 0;
-  // Match things like Rs.500, Rs 500, INR 500, ₹500, or just 500
-  // Look for the largest number if there are multiple
-  const numMatches = input.match(/(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)/gi);
-  if (numMatches && numMatches.length > 0) {
-    // Find the first matching amount-like structure, or fallback to the largest number
+  // Handle "spent 500", "Rs 500", "500rs", etc.
+  const numMatches = input.match(/(?:rs\.?|inr|₹|spent)?\s*([\d,]+(?:\.\d+)?)(?:\s*rs)?/gi);
+  if (numMatches) {
     let extractedAmount = 0;
     for (const match of numMatches) {
       const cleanNum = parseFloat(match.replace(/[^\d.]/g, ''));
@@ -32,55 +31,53 @@ export function parseTransactionInput(input: string): ParsedTransaction {
     amount = extractedAmount;
   }
 
-  // 3. Extract Merchant & Category
+  // 3. Extract Account Type
+  let accountType: "cash" | "bank" | "upi" | undefined;
+  if (lowercaseInput.includes("cash")) accountType = "cash";
+  else if (lowercaseInput.includes("upi") || lowercaseInput.includes("gpay") || lowercaseInput.includes("phonepe") || lowercaseInput.includes("paytm")) accountType = "upi";
+  else if (lowercaseInput.includes("bank") || lowercaseInput.includes("card") || lowercaseInput.includes("atm")) accountType = "bank";
+
+  // 4. Extract Merchant & Category
   let merchant: string | null = null;
-  // Project specific categories: food, transport, shopping, utilities, housing, entertainment, other
   let category = type === "income" ? "income" : "other";
 
-  const foodKeywords = ["swiggy", "zomato", "eat", "restaurant", "food", "lunch", "dinner", "breakfast", "cafe"];
-  const travelKeywords = ["uber", "ola", "travel", "cab", "flight", "irctc", "petrol", "fuel", "train"];
-  const shopKeywords = ["amazon", "flipkart", "myntra", "shopping", "store", "supermarket"];
-  const utilityKeywords = ["bill", "recharge", "electricity", "broadband", "water", "jio", "airtel"];
-  const entertainmentKeywords = ["movie", "netflix", "prime", "spotify", "cinema", "ticket"];
-  const emiKeywords = ["emi", "loan", "rent", "mortgage", "installments", "installment"];
-  
-  // Try to find known merchants
-  const allMerchants = ["swiggy", "zomato", "amazon", "flipkart", "uber", "ola", "myntra", "irctc", "netflix", "spotify"];
-  for (const m of allMerchants) {
-    if (lowercaseInput.includes(m)) {
-      merchant = m.charAt(0).toUpperCase() + m.slice(1);
-      break;
+  const foodKeywords = ["swiggy", "zomato", "eat", "restaurant", "food", "lunch", "dinner", "breakfast", "cafe", "chai", "tea", "coffee"];
+  const travelKeywords = ["uber", "ola", "travel", "cab", "flight", "irctc", "petrol", "fuel", "train", "metro", "auto"];
+  const shopKeywords = ["amazon", "flipkart", "myntra", "shopping", "store", "supermarket", "grocery", "blinkit", "zepto"];
+  const utilityKeywords = ["bill", "recharge", "electricity", "broadband", "water", "jio", "airtel", "vi", "wifi"];
+  const entertainmentKeywords = ["movie", "netflix", "prime", "spotify", "cinema", "ticket", "hotstar"];
+  const emiKeywords = ["emi", "loan", "rent", "mortgage", "installments"];
+
+  // Handle "at [Merchant]" or "on [Merchant]" or "to [Merchant]"
+  const merchantMatch = input.match(/(?:at|to|on)\s+([a-zA-Z0-9\s]{2,15})(?:\s|$|via)/i);
+  if (merchantMatch && merchantMatch[1]) {
+    const candidate = merchantMatch[1].trim();
+    // Exclude common prepositions/words
+    if (!["the", "your", "my", "this", "some", "a", "an", "on", "in", "at", "to", "via"].includes(candidate.toLowerCase())) {
+      merchant = candidate;
     }
   }
 
-  // If no merchant found from list, but we have "at [Merchant]" or "to [Merchant]"
-  if (!merchant) {
-    const atMatch = input.match(/(?:at|to)\s+([a-zA-Z0-9_]+)/i);
-    if (atMatch && atMatch[1] && !["the", "your", "my", "a"].includes(atMatch[1].toLowerCase())) {
-      merchant = atMatch[1].trim();
-    }
-  }
+  // Refine Category based on keywords or merchant
+  const findCategory = (str: string) => {
+    if (foodKeywords.some(k => str.includes(k))) return "food";
+    if (travelKeywords.some(k => str.includes(k))) return "transport";
+    if (shopKeywords.some(k => str.includes(k))) return "shopping";
+    if (utilityKeywords.some(k => str.includes(k))) return "utilities";
+    if (entertainmentKeywords.some(k => str.includes(k))) return "entertainment";
+    if (emiKeywords.some(k => str.includes(k))) return "housing";
+    return null;
+  };
 
-  // Determine Category based on keywords
-  if (emiKeywords.some(k => lowercaseInput.includes(k))) category = "emi";
-  else if (foodKeywords.some(k => lowercaseInput.includes(k))) category = "food";
-  else if (travelKeywords.some(k => lowercaseInput.includes(k))) category = "transport";
-  else if (shopKeywords.some(k => lowercaseInput.includes(k))) category = "shopping";
-  else if (utilityKeywords.some(k => lowercaseInput.includes(k))) category = "utilities";
-  else if (entertainmentKeywords.some(k => lowercaseInput.includes(k))) category = "entertainment";
+  const detectedCat = findCategory(lowercaseInput) || (merchant ? findCategory(merchant.toLowerCase()) : null);
+  if (detectedCat) category = detectedCat;
 
-  // 4. Extract Date (simple pattern matching for 25-Apr, etc)
+  // 5. Extract Date
   let date: string | null = null;
-  const dateMatch = input.match(/on\s+(\d{1,2}-[a-zA-Z]{3})/i);
+  const dateMatch = input.match(/on\s+(\d{1,2}(?:st|nd|rd|th)?\s+[a-zA-Z]{3,10})/i);
   if (dateMatch && dateMatch[1]) {
     date = dateMatch[1];
   }
 
-  return {
-    amount,
-    type,
-    category,
-    merchant,
-    date
-  };
+  return { amount, type, category, merchant, date, accountType };
 }

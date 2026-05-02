@@ -21,12 +21,17 @@ const CATEGORIES = [
 ];
 
 export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
-  const { addTransaction, settings } = useStore();
+  const { addTransaction, accounts, settings } = useStore();
   const [amount, setAmount] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0].id);
   const [note, setNote] = useState("");
   const [smartText, setSmartText] = useState("");
+  const [selectedAccountId, setSelectedAccountId] = useState(accounts[0]?.id || "");
+  const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined);
+  const [isRecurring, setIsRecurring] = useState(false);
+  
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   // Run parser whenever smartText changes
   useEffect(() => {
@@ -34,19 +39,19 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
     const debounce = setTimeout(() => {
       const parsed = parseTransactionInput(smartText);
       if (parsed.amount > 0) setAmount(parsed.amount.toString());
-      if (parsed.category !== "income" && CATEGORIES.some(c => c.id === parsed.category)) {
+      if (parsed.category && CATEGORIES.some(c => c.id === parsed.category)) {
         setSelectedCategory(parsed.category);
-      } else if (parsed.type === "income") {
-        setSelectedCategory("income");
       }
       if (parsed.merchant) {
-        setNote(parsed.merchant + (parsed.type === "income" ? " (Income)" : ""));
-      } else if (parsed.type === "income") {
-        setNote("Income");
+        setNote(parsed.merchant);
+      }
+      if (parsed.accountType) {
+        const acc = accounts.find(a => a.type === parsed.accountType);
+        if (acc) setSelectedAccountId(acc.id);
       }
     }, 400);
     return () => clearTimeout(debounce);
-  }, [smartText]);
+  }, [smartText, accounts]);
 
   useEffect(() => {
     if (isOpen) {
@@ -56,6 +61,17 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReceiptUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,142 +83,135 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
       category: selectedCategory,
       note: note || "General Entry",
       type: selectedCategory === "income" ? "income" : "expense",
+      accountId: selectedAccountId,
+      receiptUrl: receiptUrl,
     });
+    
     setAmount("");
     setNote("");
     setSmartText("");
+    setReceiptUrl(undefined);
     onClose();
   };
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center transition-all duration-300 ${
-        isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-      }`}
-    >
-      {/* Premium Backdrop */}
-      <div 
-        className="absolute inset-0 bg-[#03071d]/64 backdrop-blur-md" 
-        onClick={onClose}
-      />
+    <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center transition-all duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+      <div className="absolute inset-0 bg-[#03071d]/64 backdrop-blur-md" onClick={onClose} />
 
-      {/* Modal Content - Atelier Style */}
-      <div
-        className={`interactive-card relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-[28px] bg-white shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-[#111827] sm:rounded-[24px] ${
-          isOpen ? "translate-y-0 opacity-100 scale-100" : "translate-y-12 opacity-0 scale-95"
-        }`}
-      >
+      <div className={`interactive-card relative max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-t-[28px] bg-white shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-[#111827] sm:rounded-[32px] ${isOpen ? "translate-y-0 opacity-100 scale-100" : "translate-y-12 opacity-0 scale-95"}`}>
         <form onSubmit={handleSubmit} className="p-8 sm:p-10">
-          <div className="flex items-start justify-between gap-4 mb-10">
-            <div className="min-w-0">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white ui-safe-text">Record Transaction</h2>
-              <p className="text-slate-400 text-xs font-bold uppercase mt-1">Portfolio Ledger v1.0</p>
+          <div className="flex items-start justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">New Transaction</h2>
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Smart Ledger Integration</p>
             </div>
-            <button 
-              type="button"
-              onClick={onClose}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200/50 bg-slate-100 text-slate-500 pressable hover:bg-slate-200 dark:border-white/10 dark:bg-white/5"
-            >
+            <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5">
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
 
-          <div className="space-y-10">
-            {/* Smart Parse Input */}
-            <div className="relative group/smart z-10">
-              <div className="absolute inset-0 -inset-x-1 -inset-y-1 rounded-[20px] bg-gradient-to-r from-purple-500/0 via-purple-500/20 to-purple-500/0 opacity-0 blur-md transition-opacity duration-500 group-focus-within/smart:opacity-100 -z-10"></div>
-              <div className="relative flex items-center rounded-2xl border border-transparent bg-purple-50/50 dark:bg-purple-900/10 transition-all duration-300 group-focus-within/smart:border-purple-500/50 shadow-[0_2px_10px_rgba(0,0,0,0.01)] w-full">
-                <div className="absolute left-6">
-                  <span className="material-symbols-outlined text-purple-400 text-xl">auto_awesome</span>
-                </div>
+          <div className="space-y-8">
+            {/* Smart Input */}
+            <div className="relative group/smart">
+              <div className="absolute inset-0 -inset-x-1 -inset-y-1 rounded-[20px] bg-gradient-to-r from-[#0057c2]/0 via-[#0057c2]/10 to-[#0057c2]/0 opacity-0 blur-md transition-opacity duration-500 group-focus-within/smart:opacity-100 -z-10"></div>
+              <div className="relative flex items-center rounded-2xl bg-slate-50 dark:bg-white/5 border border-transparent group-focus-within/smart:border-[#0057c2]/30 transition-all">
+                <span className="material-symbols-outlined text-[#0057c2] ml-4">auto_awesome</span>
                 <input
                   type="text"
-                  placeholder="Paste SMS or type '200 swiggy' to auto-fill..."
+                  placeholder="Try: '500 on dinner at Taj via cash'"
                   value={smartText}
                   onChange={(e) => setSmartText(e.target.value)}
-                  className="w-full bg-transparent py-4 pl-14 pr-6 text-sm font-medium text-slate-700 dark:text-slate-200 outline-none placeholder:text-purple-400/50"
+                  className="w-full bg-transparent py-4 px-3 text-sm font-bold outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
-            {/* Fluid Amount Input */}
-            <div className="text-center relative group">
+
+            {/* Amount Display */}
+            <div className="text-center">
               <div className="flex items-center justify-center gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-secondary/40 shrink-0">{settings.currency}</span>
+                <span className="text-3xl font-black text-slate-300">{settings.currency}</span>
                 <input
                   ref={inputRef}
                   type="number"
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="min-w-0 bg-transparent text-5xl sm:text-7xl font-black text-slate-900 dark:text-white w-full outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-slate-100 dark:placeholder:text-white/5"
+                  className="min-w-0 bg-transparent text-6xl sm:text-8xl font-black text-slate-900 dark:text-white w-full outline-none text-center placeholder:text-slate-50 dark:placeholder:text-white/5"
                 />
               </div>
-              <div className="h-[1px] w-24 mx-auto bg-slate-100 dark:bg-white/10 mt-4 group-focus-within:w-full group-focus-within:bg-secondary transition-all duration-700"></div>
             </div>
 
-            {/* Redesigned Category Matrix */}
-            <div className="space-y-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Classification Type</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {CATEGORIES.map((cat) => (
+            {/* Account Selector */}
+            <div className="space-y-3">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Account / Wallet</p>
+              <div className="flex flex-wrap gap-2">
+                {accounts.map((acc) => (
                   <button
-                    key={cat.id}
+                    key={acc.id}
                     type="button"
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center gap-3 rounded-2xl border p-3 pressable ${
-                      selectedCategory === cat.id
-                        ? "bg-secondary border-secondary text-white shadow-lg shadow-secondary/20 scale-[1.02]"
-                        : "bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:border-slate-200 dark:hover:border-white/10"
-                    }`}
+                    onClick={() => setSelectedAccountId(acc.id)}
+                    className={`flex-1 min-w-[100px] flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all ${selectedAccountId === acc.id ? 'bg-[#0057c2] border-[#0057c2] text-white shadow-lg' : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:border-slate-200'}`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${selectedCategory === cat.id ? 'bg-white/20' : cat.color}`}>
-                      <span className="material-symbols-outlined text-lg">{cat.icon}</span>
-                    </div>
-                    <span className="text-xs font-bold truncate">{cat.label}</span>
+                    <span className="material-symbols-outlined text-lg">{acc.type === 'cash' ? 'payments' : acc.type === 'upi' ? 'qr_code_2' : 'account_balance'}</span>
+                    <span className="text-[10px] font-black uppercase tracking-tighter">{acc.name}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Note & CTA Group */}
-            <div className="space-y-6">
-              <div className="relative group/input z-10">
-                <div className="absolute inset-0 -inset-x-1 -inset-y-1 rounded-[20px] bg-gradient-to-r from-secondary/0 via-secondary/20 to-secondary/0 opacity-0 blur-md transition-opacity duration-500 group-focus-within/input:opacity-100 -z-10"></div>
-                <div className="relative flex items-center rounded-2xl border border-transparent bg-slate-50 dark:bg-white/5 transition-all duration-300 group-focus-within/input:border-secondary/50 group-focus-within/input:bg-white dark:group-focus-within/input:bg-[#0d1424] shadow-[0_2px_10px_rgba(0,0,0,0.01)] group-focus-within/input:shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] w-full">
-                  <div className="absolute left-6">
-                    <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within/input:text-secondary transition-colors">edit_note</span>
-                  </div>
+            {/* Category Matrix */}
+            <div className="space-y-3">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Classification</p>
+              <div className="grid grid-cols-4 gap-2">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all ${selectedCategory === cat.id ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 scale-105' : 'bg-slate-50 dark:bg-white/5 text-slate-400'}`}
+                  >
+                    <span className="material-symbols-outlined text-xl mb-1">{cat.icon}</span>
+                    <span className="text-[9px] font-black uppercase tracking-tighter">{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Extras: Note & Receipt */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <div className="relative group/note">
                   <input
                     type="text"
-                    placeholder="Transaction details..."
+                    placeholder="Add a note..."
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full bg-transparent py-5 pl-14 pr-6 text-sm font-medium text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400"
+                    className="w-full bg-slate-50 dark:bg-white/5 py-4 px-6 rounded-2xl text-sm font-bold outline-none border border-transparent focus:border-[#0057c2]/30"
                   />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={!amount || parseFloat(amount) <= 0}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-secondary py-6 text-lg font-black text-white shadow-2xl shadow-secondary/30 pressable hover:shadow-secondary/50 disabled:scale-100 disabled:opacity-20 disabled:grayscale"
-              >
-                <span>Authorize Transaction</span>
-                <span className="material-symbols-outlined text-xl">arrow_forward</span>
-              </button>
+               </div>
+               <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className={`flex-1 flex items-center justify-center gap-2 rounded-2xl border transition-all ${receiptUrl ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500' : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500'}`}
+                  >
+                    <span className="material-symbols-outlined text-xl">{receiptUrl ? 'check_circle' : 'receipt_long'}</span>
+                    <span className="text-xs font-bold">{receiptUrl ? 'Receipt Added' : 'Add Receipt'}</span>
+                  </button>
+                  <input type="file" ref={fileRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+               </div>
             </div>
+
+            <button
+              type="submit"
+              disabled={!amount || parseFloat(amount) <= 0}
+              className="w-full bg-[#0057c2] hover:bg-[#0066e0] text-white py-6 rounded-[24px] text-xl font-black shadow-2xl shadow-[#0057c2]/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 flex items-center justify-center gap-3"
+            >
+              <span>Authorize Entry</span>
+              <span className="material-symbols-outlined">arrow_forward</span>
+            </button>
           </div>
         </form>
       </div>
-
-      <style jsx>{`
-        input::placeholder {
-          transition: opacity 0.3s;
-        }
-        input:focus::placeholder {
-          opacity: 0;
-        }
-      `}</style>
     </div>
   );
 }

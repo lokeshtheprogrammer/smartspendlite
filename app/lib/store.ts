@@ -9,12 +9,31 @@ export type Transaction = {
   note: string;
   date: string;
   type: "income" | "expense";
+  accountId?: string;
+  receiptUrl?: string;
 };
 
 export type Budget = {
   limit: number;
   month: string;
   category?: string;
+};
+
+export type Account = {
+  id: string;
+  name: string;
+  type: "cash" | "bank" | "upi";
+  balance: number;
+};
+
+export type RecurringTransaction = {
+  id: string;
+  amount: number;
+  category: string;
+  note: string;
+  frequency: "monthly" | "weekly";
+  type: "income" | "expense";
+  lastTriggered?: string; // Date string
 };
 
 export type UserSettings = {
@@ -26,16 +45,14 @@ export type UserSettings = {
 };
 
 const STORAGE_KEYS = {
-  TRANSACTIONS: "smartspend_transactions_v2",
-  BUDGETS: "smartspend_budgets_v2",
-  SETTINGS: "smartspend_settings_v2",
+  TRANSACTIONS: "smartspend_transactions_v3",
+  BUDGETS: "smartspend_budgets_v3",
+  SETTINGS: "smartspend_settings_v3",
+  ACCOUNTS: "smartspend_accounts_v3",
+  RECURRING: "smartspend_recurring_v3",
 };
 
-// --- Improved Security Middleware ---
-// Using Web Crypto API for proper AES-GCM encryption
-// Note: In production, consider server-side encryption for sensitive data
-
-// Generate a secure key from user session or device fingerprint
+// --- Security Middleware ---
 const getEncryptionKey = async (): Promise<CryptoKey> => {
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -44,14 +61,8 @@ const getEncryptionKey = async (): Promise<CryptoKey> => {
     false,
     ['deriveBits', 'deriveKey']
   );
-  
   return crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: new TextEncoder().encode('smartspend-salt-2024'),
-      iterations: 100000,
-      hash: 'SHA-256'
-    },
+    { name: 'PBKDF2', salt: new TextEncoder().encode('smartspend-salt-2024'), iterations: 100000, hash: 'SHA-256' },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     true,
@@ -64,72 +75,36 @@ const encrypt = async (data: string): Promise<string> => {
     const key = await getEncryptionKey();
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encoded = new TextEncoder().encode(data);
-    
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      encoded
-    );
-    
-    // Combine IV and encrypted data
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
     const combined = new Uint8Array(iv.length + encrypted.byteLength);
     combined.set(iv);
     combined.set(new Uint8Array(encrypted), iv.length);
-    
     return btoa(String.fromCharCode(...combined));
-  } catch {
-    // Fallback to simple obfuscation if crypto fails
-    return obfuscate(data);
-  }
+  } catch { return btoa(data); }
 };
 
 const decrypt = async (cipher: string): Promise<string | null> => {
   try {
     const key = await getEncryptionKey();
     const combined = Uint8Array.from(atob(cipher), c => c.charCodeAt(0));
-    
     const iv = combined.slice(0, 12);
     const encrypted = combined.slice(12);
-    
-    const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      encrypted
-    );
-    
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encrypted);
     return new TextDecoder().decode(decrypted);
-  } catch {
-    // Fallback to simple deobfuscation if crypto fails
-    return deobfuscate(cipher);
-  }
+  } catch { try { return atob(cipher); } catch { return null; } }
 };
 
-// Legacy obfuscation as fallback
-const obfuscate = (data: string) => {
-  const bytes = new TextEncoder().encode(data);
-  const shifted = bytes.map(b => b ^ 0x42); 
-  return btoa(String.fromCharCode(...shifted));
-};
-
-const deobfuscate = (cipher: string) => {
-  try {
-    const bytes = Uint8Array.from(atob(cipher), c => c.charCodeAt(0));
-    const original = bytes.map(b => b ^ 0x42);
-    return new TextDecoder().decode(original);
-  } catch {
-    return null;
-  }
-};
-
-// Singleton state to prevent initialization loops across components
+// Singleton state
 let globalTransactions: Transaction[] = [];
 let globalBudgets: Budget[] = [];
+let globalAccounts: Account[] = [
+  { id: "cash", name: "Cash", type: "cash", balance: 0 },
+  { id: "bank", name: "Bank", type: "bank", balance: 0 },
+  { id: "upi", name: "UPI / Wallet", type: "upi", balance: 0 },
+];
+let globalRecurring: RecurringTransaction[] = [];
 let globalSettings: UserSettings = {
-  currency: "Rs",
-  income: 0,
-  name: "",
-  onboarded: false,
-  photoUrl: "",
+  currency: "Rs", income: 0, name: "", onboarded: false, photoUrl: "",
 };
 let globalIsLoaded = false;
 let listeners: Array<() => void> = [];
@@ -142,57 +117,83 @@ export function useStore() {
 
   useEffect(() => {
     listeners.push(forceUpdate);
-    
     if (!globalIsLoaded) {
-      // Store: Initializing Secure Singleton...
       (async () => {
         try {
-          const savedT = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
-          const savedB = localStorage.getItem(STORAGE_KEYS.BUDGETS);
-          const savedS = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+          const load = async (key: string) => {
+            const val = localStorage.getItem(key);
+            if (val) {
+              const d = await decrypt(val);
+              return d ? JSON.parse(d) : null;
+            }
+            return null;
+          };
 
-          if (savedT) {
-            const decrypted = await decrypt(savedT);
-            if (decrypted) globalTransactions = JSON.parse(decrypted);
-          }
-          if (savedB) {
-            const decrypted = await decrypt(savedB);
-            if (decrypted) globalBudgets = JSON.parse(decrypted);
-          }
-          if (savedS) {
-            const decrypted = await decrypt(savedS);
-            if (decrypted) globalSettings = { ...globalSettings, ...JSON.parse(decrypted) };
-          }
-        } catch {
-          // Store: Error loading secure data
+          const t = await load(STORAGE_KEYS.TRANSACTIONS);
+          if (t) globalTransactions = t;
+          const b = await load(STORAGE_KEYS.BUDGETS);
+          if (b) globalBudgets = b;
+          const s = await load(STORAGE_KEYS.SETTINGS);
+          if (s) globalSettings = { ...globalSettings, ...s };
+          const a = await load(STORAGE_KEYS.ACCOUNTS);
+          if (a) globalAccounts = a;
+          const r = await load(STORAGE_KEYS.RECURRING);
+          if (r) globalRecurring = r;
+
+        } catch (e) {
+          console.error("Store load error", e);
         } finally {
           globalIsLoaded = true;
-          // Store: Secure Singleton Loaded
           notify();
         }
       })();
     }
-
-    return () => {
-      listeners = listeners.filter(l => l !== forceUpdate);
-    };
+    return () => { listeners = listeners.filter(l => l !== forceUpdate); };
   }, [forceUpdate]);
 
   const saveToStorage = async (key: string, data: unknown) => {
-    const serialized = JSON.stringify(data);
-    const encrypted = await encrypt(serialized);
+    const encrypted = await encrypt(JSON.stringify(data));
     localStorage.setItem(key, encrypted);
   };
 
-  const addTransaction = async (t: Omit<Transaction, "id" | "date" | "type"> & Partial<Pick<Transaction, "type">>) => {
+  const addTransaction = async (t: Omit<Transaction, "id" | "date" | "type"> & Partial<Pick<Transaction, "type" | "date" | "accountId" | "receiptUrl">>) => {
     const newT: Transaction = {
       ...t,
       type: t.type ?? "expense",
       id: Math.random().toString(36).substring(2, 11),
-      date: new Date().toISOString(),
+      date: t.date ?? new Date().toISOString(),
     };
     globalTransactions = [newT, ...globalTransactions];
+    
+    // Update account balance
+    if (t.accountId) {
+      const acc = globalAccounts.find(a => a.id === t.accountId);
+      if (acc) {
+        acc.balance += (newT.type === "income" ? newT.amount : -newT.amount);
+        await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
+      }
+    }
+
     await saveToStorage(STORAGE_KEYS.TRANSACTIONS, globalTransactions);
+    notify();
+  };
+
+  const updateAccount = async (id: string, updates: Partial<Account>) => {
+    globalAccounts = globalAccounts.map(a => a.id === id ? { ...a, ...updates } : a);
+    await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
+    notify();
+  };
+
+  const addRecurring = async (rt: Omit<RecurringTransaction, "id">) => {
+    const newRT: RecurringTransaction = { ...rt, id: Math.random().toString(36).substring(2, 11) };
+    globalRecurring = [...globalRecurring, newRT];
+    await saveToStorage(STORAGE_KEYS.RECURRING, globalRecurring);
+    notify();
+  };
+
+  const deleteRecurring = async (id: string) => {
+    globalRecurring = globalRecurring.filter(r => r.id !== id);
+    await saveToStorage(STORAGE_KEYS.RECURRING, globalRecurring);
     notify();
   };
 
@@ -210,6 +211,14 @@ export function useStore() {
   };
 
   const deleteTransaction = async (id: string) => {
+    const t = globalTransactions.find(x => x.id === id);
+    if (t?.accountId) {
+      const acc = globalAccounts.find(a => a.id === t.accountId);
+      if (acc) {
+        acc.balance -= (t.type === "income" ? t.amount : -t.amount);
+        await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
+      }
+    }
     globalTransactions = globalTransactions.filter((t) => t.id !== id);
     await saveToStorage(STORAGE_KEYS.TRANSACTIONS, globalTransactions);
     notify();
@@ -218,11 +227,16 @@ export function useStore() {
   return {
     transactions: globalTransactions,
     budgets: globalBudgets,
+    accounts: globalAccounts,
+    recurring: globalRecurring,
     settings: globalSettings,
     isLoaded: globalIsLoaded,
     addTransaction,
     deleteTransaction,
     updateBudget,
     updateSettings,
+    updateAccount,
+    addRecurring,
+    deleteRecurring,
   };
 }
