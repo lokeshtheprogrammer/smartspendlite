@@ -50,6 +50,10 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
         const acc = accounts.find(a => a.type === parsed.accountType);
         if (acc) setSelectedAccountId(acc.id);
       }
+      if (parsed.goalName) {
+        const goal = goals.find(g => g.name.toLowerCase().includes(parsed.goalName!.toLowerCase()));
+        if (goal) setSelectedGoalId(goal.id);
+      }
     }, 400);
     return () => clearTimeout(debounce);
   }, [smartText, accounts]);

@@ -5,6 +5,7 @@ export type ParsedTransaction = {
   merchant: string | null;
   date: string | null;
   accountType?: "cash" | "bank" | "upi";
+  goalName?: string | null;
 };
 
 export function parseTransactionInput(input: string): ParsedTransaction {
@@ -79,5 +80,14 @@ export function parseTransactionInput(input: string): ParsedTransaction {
     date = dateMatch[1];
   }
 
-  return { amount, type, category, merchant, date, accountType };
+  // 6. Extract Goal Link
+  let goalName: string | null = null;
+  if (lowercaseInput.includes("for") || lowercaseInput.includes("goal") || lowercaseInput.includes("to")) {
+    const goalMatch = input.match(/(?:for|goal|to)\s+([a-zA-Z0-9\s]{2,15})(?:\s|$)/i);
+    if (goalMatch && goalMatch[1]) {
+      goalName = goalMatch[1].trim();
+    }
+  }
+
+  return { amount, type, category, merchant, date, accountType, goalName };
 }

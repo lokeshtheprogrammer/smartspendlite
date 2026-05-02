@@ -163,15 +163,42 @@ export function useStore() {
     if (t.goalId) {
       globalGoals = globalGoals.map(g => {
         if (g.id === t.goalId) {
-          // For saving goals, income adds to it. For event goals, expenses track spending.
-          // However, to be flexible, we'll allow both to contribute to progress.
-          return { ...g, currentAmount: g.currentAmount + newT.amount };
+          const delta = newT.type === "income" ? newT.amount : -newT.amount;
+          return { ...g, currentAmount: Math.max(0, g.currentAmount + delta) };
         }
         return g;
       });
       await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
     }
 
+    await saveToStorage(STORAGE_KEYS.TRANSACTIONS, globalTransactions);
+    notify();
+  };
+
+  const deleteTransaction = async (id: string) => {
+    const t = globalTransactions.find(x => x.id === id);
+    if (!t) return;
+
+    if (t.accountId) {
+      const acc = globalAccounts.find(a => a.id === t.accountId);
+      if (acc) {
+        acc.balance -= (t.type === "income" ? t.amount : -t.amount);
+        await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
+      }
+    }
+
+    if (t.goalId) {
+      globalGoals = globalGoals.map(g => {
+        if (g.id === t.goalId) {
+          const delta = t.type === "income" ? -t.amount : t.amount;
+          return { ...g, currentAmount: Math.max(0, g.currentAmount + delta) };
+        }
+        return g;
+      });
+      await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
+    }
+
+    globalTransactions = globalTransactions.filter(x => x.id !== id);
     await saveToStorage(STORAGE_KEYS.TRANSACTIONS, globalTransactions);
     notify();
   };
@@ -208,25 +235,16 @@ export function useStore() {
     notify();
   };
 
-  const deleteTransaction = async (id: string) => {
-    const t = globalTransactions.find(x => x.id === id);
-    if (t?.accountId) {
-      const acc = globalAccounts.find(a => a.id === t.accountId);
-      if (acc) {
-        acc.balance -= (t.type === "income" ? t.amount : -t.amount);
-        await saveToStorage(STORAGE_KEYS.ACCOUNTS, globalAccounts);
-      }
-    }
-    if (t?.goalId) {
-      const goal = globalGoals.find(g => g.id === t.goalId);
-      if (goal) {
-        if (goal.type === "saving" && t.type === "income") goal.currentAmount -= t.amount;
-        else if (goal.type === "event" && t.type === "expense") goal.currentAmount -= t.amount;
-        await saveToStorage(STORAGE_KEYS.GOALS, globalGoals);
-      }
-    }
-    globalTransactions = globalTransactions.filter((t) => t.id !== id);
-    await saveToStorage(STORAGE_KEYS.TRANSACTIONS, globalTransactions);
+  const addRecurring = async (r: Omit<RecurringTransaction, "id">) => {
+    const newR = { ...r, id: Math.random().toString(36).substring(2, 11) };
+    globalRecurring = [...globalRecurring, newR];
+    await saveToStorage(STORAGE_KEYS.RECURRING, globalRecurring);
+    notify();
+  };
+
+  const deleteRecurring = async (id: string) => {
+    globalRecurring = globalRecurring.filter(r => r.id !== id);
+    await saveToStorage(STORAGE_KEYS.RECURRING, globalRecurring);
     notify();
   };
 
@@ -245,5 +263,7 @@ export function useStore() {
     updateAccount,
     addGoal,
     deleteGoal,
+    addRecurring,
+    deleteRecurring,
   };
 }
