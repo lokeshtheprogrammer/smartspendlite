@@ -243,14 +243,14 @@ export default function Settings() {
                <div className="space-y-3">
                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Active Bills ({recurring.length})</p>
                  {recurring.map(r => (
-                   <div key={r.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-transparent hover:border-secondary/20 transition-all group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center">
-                          <span className="material-symbols-outlined text-xl">auto_renew</span>
+                   <div key={r.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-transparent hover:border-secondary/20 transition-all group gap-4">
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <div className="w-12 h-12 shrink-0 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-xl">schedule</span>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">{r.note}</p>
-                          <p className="text-[10px] font-black text-slate-400 uppercase">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{r.note}</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase truncate">
                             {r.frequency} • {settings.currency}{r.amount} • {r.category}
                           </p>
                           {r.lastTriggered && (
@@ -258,7 +258,7 @@ export default function Settings() {
                           )}
                         </div>
                       </div>
-                      <button onClick={() => deleteRecurring(r.id)} className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                      <button onClick={() => deleteRecurring(r.id)} className="shrink-0 text-slate-300 hover:text-red-500 transition-colors">
                         <span className="material-symbols-outlined text-lg">delete</span>
                       </button>
                    </div>
